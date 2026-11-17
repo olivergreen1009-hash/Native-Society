@@ -16,10 +16,41 @@ import {
   RELATIONSHIP_INTENTIONS,
   SCHOOL_SUGGESTIONS,
   SEEKING_GENDER_OPTIONS,
+  SUMMER_DESTINATIONS,
 } from "@/lib/application-options";
 import { admissionCohort, ageFromDateOfBirth } from "@/lib/application-validation";
 import type { ApplicationSubmitBody } from "@/lib/application-api";
-import type { HighSchoolRecord, OptionalSchoolRecord } from "@/lib/types";
+import type {
+  ApplicationProfilePhoto,
+  HighSchoolRecord,
+  OptionalSchoolRecord,
+} from "@/lib/types";
+
+const MAX_PROFILE_PHOTO_BYTES = 1.5 * 1024 * 1024;
+const PROFILE_PHOTO_ACCEPT = "image/jpeg,image/png,image/webp";
+
+async function fileToProfilePhoto(file: File): Promise<ApplicationProfilePhoto> {
+  const dataBase64 = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error("Could not read file."));
+        return;
+      }
+      const comma = result.indexOf(",");
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Could not read file."));
+    reader.readAsDataURL(file);
+  });
+  return {
+    fileName: file.name,
+    mimeType: file.type,
+    sizeBytes: file.size,
+    dataBase64,
+  };
+}
 
 const inputClass =
   "mt-3 w-full border border-ns-border bg-ns-elevated px-4 py-3.5 text-base text-ns-cream outline-none transition focus:border-ns-gold";
@@ -44,6 +75,10 @@ export function ApplicationForm() {
   const [showCollege, setShowCollege] = useState(false);
   const [elemMiddle, setElemMiddle] = useState({ schoolName: "", graduationYear: "" });
   const [college, setCollege] = useState({ schoolName: "", graduationYear: "" });
+  const [summerDestination, setSummerDestination] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState<ApplicationProfilePhoto | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState("");
 
   const age = useMemo(() => (dob ? ageFromDateOfBirth(dob) : null), [dob]);
   const cohort = age !== null ? admissionCohort(age) : null;
@@ -173,6 +208,38 @@ export function ApplicationForm() {
       };
     }
 
+    const occupation = String(data.get("occupation") ?? "").trim();
+    const summerOther = String(data.get("summerOther") ?? "").trim();
+    const charityBoardInvolvement =
+      String(data.get("charityBoardInvolvement") ?? "").trim() || undefined;
+    const shortBio = String(data.get("shortBio") ?? "").trim();
+
+    if (!occupation) {
+      setError("Enter your occupation or industry.");
+      setLoading(false);
+      return;
+    }
+    if (!summerDestination) {
+      setError("Select where you usually summer.");
+      setLoading(false);
+      return;
+    }
+    if (summerDestination === "Other" && !summerOther) {
+      setError("Describe where you summer when selecting Other.");
+      setLoading(false);
+      return;
+    }
+    if (!shortBio || shortBio.length < 40) {
+      setError("Add a short bio or what you are looking for (at least 40 characters).");
+      setLoading(false);
+      return;
+    }
+    if (photoError) {
+      setError(photoError);
+      setLoading(false);
+      return;
+    }
+
     const payload: ApplicationSubmitBody = {
       name,
       email,
@@ -195,6 +262,12 @@ export function ApplicationForm() {
       heardAbout: String(data.get("heardAbout") ?? ""),
       referrerName: String(data.get("referrerName") ?? "").trim() || undefined,
       consents,
+      occupation,
+      summerDestination,
+      summerOther: summerDestination === "Other" ? summerOther : undefined,
+      charityBoardInvolvement,
+      shortBio,
+      profilePhoto: profilePhoto ?? undefined,
     };
 
     try {
@@ -401,6 +474,76 @@ export function ApplicationForm() {
             />
           </div>
         )}
+      </fieldset>
+
+      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
+        <legend className="font-heading text-lg text-ns-cream">Life & presentation</legend>
+        <p className="text-sm leading-relaxed text-ns-muted">
+          Selective detail for admissions review—kept private until membership.
+        </p>
+        <Field
+          label="Occupation / industry"
+          name="occupation"
+          required
+          autoComplete="organization-title"
+          placeholder="e.g. Private equity · Art advisory"
+        />
+        <StatefulSelect
+          label="Where do you summer?"
+          value={summerDestination}
+          onChange={setSummerDestination}
+          options={SUMMER_DESTINATIONS}
+          required
+        />
+        {summerDestination === "Other" && (
+          <Field
+            label="Where you summer"
+            name="summerOther"
+            required
+            placeholder="e.g. Maine coast, Aspen"
+          />
+        )}
+        <Field
+          label="Charity or board involvement (optional)"
+          name="charityBoardInvolvement"
+          placeholder="e.g. Museum board, youth charity"
+        />
+        <TextArea
+          label="Short bio · what you’re looking for"
+          name="shortBio"
+          required
+          rows={4}
+          placeholder="A few sentences on your life in New York and what kind of introduction you want here."
+          hint="At least 40 characters. Reviewed by admissions only."
+        />
+        <ProfilePhotoUpload
+          previewUrl={photoPreview}
+          error={photoError}
+          onClear={() => {
+            if (photoPreview) URL.revokeObjectURL(photoPreview);
+            setProfilePhoto(null);
+            setPhotoPreview(null);
+            setPhotoError("");
+          }}
+          onFile={async (file) => {
+            setPhotoError("");
+            if (!PROFILE_PHOTO_ACCEPT.split(",").includes(file.type)) {
+              setPhotoError("Use a JPEG, PNG, or WebP image.");
+              return;
+            }
+            if (file.size > MAX_PROFILE_PHOTO_BYTES) {
+              setPhotoError("Photo must be 1.5 MB or smaller.");
+              return;
+            }
+            try {
+              const photo = await fileToProfilePhoto(file);
+              setProfilePhoto(photo);
+              setPhotoPreview(URL.createObjectURL(file));
+            } catch {
+              setPhotoError("Could not read that file. Try another image.");
+            }
+          }}
+        />
       </fieldset>
 
       <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
@@ -618,17 +761,92 @@ function TextArea({
   label,
   name,
   rows = 4,
+  required,
+  placeholder,
+  hint,
 }: {
   label: string;
   name: string;
   rows?: number;
+  required?: boolean;
+  placeholder?: string;
+  hint?: string;
 }) {
   return (
     <div>
       <label className={labelClass} htmlFor={name}>
         {label}
       </label>
-      <textarea id={name} name={name} rows={rows} className={inputClass} />
+      {hint && <p className="mt-1 text-sm text-ns-muted">{hint}</p>}
+      <textarea
+        id={name}
+        name={name}
+        rows={rows}
+        required={required}
+        placeholder={placeholder}
+        className={inputClass}
+      />
+    </div>
+  );
+}
+
+function ProfilePhotoUpload({
+  previewUrl,
+  error,
+  onFile,
+  onClear,
+}: {
+  previewUrl: string | null;
+  error: string;
+  onFile: (file: File) => void | Promise<void>;
+  onClear: () => void;
+}) {
+  return (
+    <div>
+      <p className={labelClass}>Photo (optional)</p>
+      <p className="mt-1 text-sm text-ns-muted">
+        One recent image, max 1.5 MB. Stored securely with your application.
+      </p>
+      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start">
+        <label className="flex min-h-[7.5rem] flex-1 cursor-pointer flex-col items-center justify-center rounded border border-dashed border-ns-border bg-ns-elevated/40 px-4 py-6 text-center transition hover:border-ns-gold/60">
+          <span className="text-sm text-ns-cream">
+            {previewUrl ? "Replace photo" : "Choose an image"}
+          </span>
+          <span className="mt-1 text-xs text-ns-muted">JPEG · PNG · WebP</span>
+          <input
+            type="file"
+            accept={PROFILE_PHOTO_ACCEPT}
+            className="sr-only"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void onFile(file);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {previewUrl && (
+          <div className="relative shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl}
+              alt="Your selected profile preview"
+              className="h-28 w-28 rounded border border-ns-border object-cover sm:h-32 sm:w-32"
+            />
+            <button
+              type="button"
+              onClick={onClear}
+              className="mt-2 w-full text-xs uppercase tracking-wider text-ns-gold hover:text-ns-cream"
+            >
+              Remove
+            </button>
+          </div>
+        )}
+      </div>
+      {error && (
+        <p className="mt-2 text-sm text-red-400" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

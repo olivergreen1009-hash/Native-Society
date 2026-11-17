@@ -77,6 +77,14 @@ export interface OptionalSchoolRecord {
   graduationYear?: string;
 }
 
+/** Optional headshot stored inline in application raw_data for now. */
+export interface ApplicationProfilePhoto {
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  dataBase64: string;
+}
+
 export interface InquiryPoolKey {
   gender: string;
   seekingGenders: string[];
@@ -106,6 +114,12 @@ export interface InquirySubmission {
   locationPreference: string;
   relationshipIntention: string;
   optionalNote?: string;
+  occupation: string;
+  summerDestination: string;
+  summerOther?: string;
+  charityBoardInvolvement?: string;
+  shortBio: string;
+  profilePhoto?: ApplicationProfilePhoto;
   highSchool: HighSchoolRecord;
   elementaryMiddle?: OptionalSchoolRecord;
   college?: OptionalSchoolRecord;

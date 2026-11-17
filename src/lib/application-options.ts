@@ -105,3 +105,13 @@ export const ADMISSION_AGE_MIN = 21;
 export const ADMISSION_AGE_MAX = 50;
 
 export const ADMISSION_AGE_COPY = `Currently admitting ages ${ADMISSION_AGE_MIN}–${ADMISSION_AGE_MAX}.`;
+
+export const SUMMER_DESTINATIONS = [
+  "Hamptons",
+  "Nantucket",
+  "Newport",
+  "Europe",
+  "Other",
+] as const;
+
+export type SummerDestination = (typeof SUMMER_DESTINATIONS)[number];
