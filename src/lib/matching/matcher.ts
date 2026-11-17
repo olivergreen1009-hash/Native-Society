@@ -18,6 +18,10 @@ import type {
   User,
 } from "@/types/domain";
 import type { BlockRepository } from "@/repositories/interfaces";
+import {
+  canReceiveIntroductions,
+  isIntroductionCandidate,
+} from "@/lib/membership/visibility";
 
 export interface MatcherContext {
   viewer: User;
@@ -69,6 +73,7 @@ export async function buildWeeklyBatch(
   weekOf: string,
   batchSize = 5,
 ): Promise<string[]> {
+  if (!canReceiveIntroductions(ctx.viewer)) return [];
   const passed = new Set(
     ctx.priorInterests
       .filter((i) => i.fromUserId === ctx.viewer.id && i.decision === "pass")
@@ -85,8 +90,7 @@ export async function buildWeeklyBatch(
   for (const profile of ctx.candidates) {
     if (profile.userId === ctx.viewer.id) continue;
     const user = ctx.candidateUsers.get(profile.userId);
-    if (!user?.active || !user.approvedAt) continue;
-    if (!profile.discoverable) continue;
+    if (!user || !isIntroductionCandidate(user, profile)) continue;
     if (passed.has(profile.userId) || alreadyInterested.has(profile.userId))
       continue;
     if (await ctx.blocks.isBlocked(ctx.viewer.id, profile.userId)) continue;

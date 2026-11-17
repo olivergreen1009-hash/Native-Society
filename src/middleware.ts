@@ -7,6 +7,7 @@ const protectedPrefixes = [
   "/matches",
   "/profile",
   "/onboarding",
+  "/account",
   "/admin",
 ];
 
@@ -55,6 +56,7 @@ export const config = {
     "/matches/:path*",
     "/profile/:path*",
     "/onboarding/:path*",
+    "/account/:path*",
     "/admin/:path*",
     "/login",
     "/signup",

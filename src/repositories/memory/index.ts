@@ -12,6 +12,10 @@ import type {
   RecommendationBatch,
   Report,
   User,
+  NotificationPreferences,
+  ApplicationStatus,
+  ProfileModerationStatus,
+  ReportStatus,
 } from "@/types/domain";
 import type {
   AdminActionRepository,
@@ -20,12 +24,14 @@ import type {
   InterestRepository,
   MatchRepository,
   MessageRepository,
+  NotificationPreferencesRepository,
   PreferencesRepository,
   ProfileRepository,
   RecommendationRepository,
   ReportRepository,
   UserRepository,
 } from "@/repositories/interfaces";
+import { isIntroductionCandidate } from "@/lib/membership/visibility";
 
 const id = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -70,6 +76,9 @@ export const memoryUsers: UserRepository = {
       (u) => u.active && u.role === "member",
     );
   },
+  async listMembers() {
+    return [...db().users.values()].filter((u) => u.role === "member");
+  },
 };
 
 export const memoryApplications: ApplicationRepository = {
@@ -102,6 +111,16 @@ export const memoryApplications: ApplicationRepository = {
     db().applications.set(appId, updated);
     return updated;
   },
+  async listAll() {
+    return [...db().applications.values()].sort(
+      (a, b) =>
+        new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
+    );
+  },
+  async listByStatus(status?: ApplicationStatus) {
+    const all = await this.listAll();
+    return status ? all.filter((a) => a.status === status) : all;
+  },
 };
 
 export const memoryProfiles: ProfileRepository = {
@@ -114,7 +133,26 @@ export const memoryProfiles: ProfileRepository = {
     return db().profiles.get(profileId) ?? null;
   },
   async listDiscoverable() {
-    return [...db().profiles.values()].filter((p) => p.discoverable);
+    const store = db();
+    return [...store.profiles.values()].filter((p) => {
+      const user = store.users.get(p.userId);
+      if (!user) return false;
+      return isIntroductionCandidate(user, p);
+    });
+  },
+  async listAll() {
+    return [...db().profiles.values()];
+  },
+  async listByModeration(status?: ProfileModerationStatus) {
+    const all = await this.listAll();
+    if (!status) {
+      return all.filter(
+        (p) =>
+          p.moderationStatus === "flagged" ||
+          p.moderationStatus === "pending_review",
+      );
+    }
+    return all.filter((p) => p.moderationStatus === status);
   },
   async upsert(profile) {
     db().profiles.set(profile.id, { ...profile, updatedAt: now() });
@@ -243,13 +281,69 @@ export const memoryBlocks: BlockRepository = {
     db().blocks.push(created);
     return created;
   },
+  async remove(blockId) {
+    const store = db();
+    const before = store.blocks.length;
+    store.blocks = store.blocks.filter((b) => b.id !== blockId);
+    return store.blocks.length < before;
+  },
+  async listBlockedBy(userId) {
+    return db().blocks.filter((b) => b.blockerId === userId);
+  },
+};
+
+export const memoryNotifications: NotificationPreferencesRepository = {
+  async getByUserId(userId) {
+    const existing = db().notificationPreferences.get(userId);
+    if (existing) return existing;
+    const defaults: NotificationPreferences = {
+      userId,
+      emailNewIntroductions: true,
+      emailMutualMatches: true,
+      emailMessages: true,
+      inAppNewIntroductions: true,
+      inAppMutualMatches: true,
+      inAppMessages: true,
+    };
+    db().notificationPreferences.set(userId, defaults);
+    return defaults;
+  },
+  async upsert(prefs) {
+    db().notificationPreferences.set(prefs.userId, prefs);
+    return prefs;
+  },
 };
 
 export const memoryReports: ReportRepository = {
   async create(report) {
-    const created: Report = { ...report, id: id("report"), createdAt: now() };
+    const created: Report = {
+      ...report,
+      id: id("report"),
+      status: "open",
+      adminNote: "",
+      createdAt: now(),
+      resolvedAt: null,
+    };
     db().reports.push(created);
     return created;
+  },
+  async listAll() {
+    return [...db().reports].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  },
+  async listByStatus(status?: ReportStatus) {
+    const all = await this.listAll();
+    return status ? all.filter((r) => r.status === status) : all;
+  },
+  async update(reportId, patch) {
+    const store = db();
+    const idx = store.reports.findIndex((r) => r.id === reportId);
+    if (idx < 0) return null;
+    const updated = { ...store.reports[idx], ...patch };
+    store.reports[idx] = updated;
+    return updated;
   },
 };
 
@@ -276,5 +370,6 @@ export const repositories = {
   messages: memoryMessages,
   blocks: memoryBlocks,
   reports: memoryReports,
+  notifications: memoryNotifications,
   adminActions: memoryAdminActions,
 };

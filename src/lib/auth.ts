@@ -1,5 +1,6 @@
 import { ensureSeeded, DEMO_PASSWORD_ADMIN, DEMO_PASSWORD_MEMBER } from "@/data/seed";
 import { getMemoryDb } from "@/lib/data/memory-store";
+import { canSignIn } from "@/lib/membership/visibility";
 import type { User } from "@/types/domain";
 import {
   sessionFromUser,
@@ -28,12 +29,14 @@ export function authenticate(email: string, password: string): User | null {
   if (!user) return null;
 
   if (normalized === "member@nativesociety.nyc") {
-    return password === DEMO_PASSWORD_MEMBER ? user : null;
+    return password === DEMO_PASSWORD_MEMBER && canSignIn(user) ? user : null;
   }
   if (normalized === "admin@nativesociety.nyc") {
-    return password === DEMO_PASSWORD_ADMIN ? user : null;
+    return password === DEMO_PASSWORD_ADMIN && canSignIn(user) ? user : null;
   }
-  if (user.passwordHash && user.passwordHash === password) return user;
+  if (user.passwordHash && user.passwordHash === password) {
+    return canSignIn(user) ? user : null;
+  }
   return null;
 }
 

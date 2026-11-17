@@ -27,6 +27,13 @@ The approved member has a pre-seeded profile, weekly batch, and a sample match t
 - `npm run start` — serve production build
 - `npm run lint` — ESLint
 
+## Phase 2 (account & admin)
+
+- **`/account`** — profile & preferences (reuses onboarding editor), pause discovery toggle, mock notification prefs, blocked list + unblock, deletion request flow (`pending_deletion` on user)
+- **Admin** — application queue, profile moderation, member pause/suspend/remove, match diagnostics (`/api/admin/diagnostics/[userId]`), reports queue, analytics dashboard
+
+Pause discovery wires through `User.pauseDiscovery` and `lib/membership/visibility` so paused members are excluded from new batches as viewers and candidates; existing matches/chats unchanged.
+
 ## Phase 1 scope
 
 | Area | Routes |
@@ -37,7 +44,8 @@ The approved member has a pre-seeded profile, weekly batch, and a sample match t
 | Onboarding & profile | `/onboarding/profile`, `/profile` |
 | Introductions | `/discover` |
 | Matches & chat | `/matches`, `/matches/[id]` |
-| Admin shell | `/admin` (role-gated) |
+| Account settings | `/account` (profile edit, pause discovery, notifications, blocks, deletion request) |
+| Admin | `/admin`, `/admin/applications`, `/admin/profiles`, `/admin/members`, `/admin/reports` |
 | Legal placeholders | `/privacy`, `/terms`, `/safety`, `/contact` |
 
 ## Architecture

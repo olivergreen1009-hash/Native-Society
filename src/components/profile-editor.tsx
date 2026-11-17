@@ -24,6 +24,7 @@ const emptyProfile = (userId: string): Profile => ({
   neighborhood: "",
   discoverable: false,
   completedOnboarding: false,
+  moderationStatus: "approved",
   updatedAt: new Date().toISOString(),
 });
 

@@ -14,6 +14,18 @@ export async function GET() {
     return NextResponse.json({ error: "Not approved" }, { status: 403 });
   }
 
+  const { canReceiveIntroductions } = await import("@/lib/membership/visibility");
+  if (!canReceiveIntroductions(user)) {
+    return NextResponse.json({
+      paused: true,
+      pauseDiscovery: user.pauseDiscovery,
+      accountStatus: user.accountStatus,
+      profiles: [],
+      batchId: "",
+      refreshAt: null,
+    });
+  }
+
   const { batch, refreshAt } = await getOrCreateWeeklyBatch(session.userId);
   const profiles = (
     await Promise.all(

@@ -87,6 +87,16 @@ export function SiteHeader({
               >
                 Profile
               </Link>
+              <Link
+                href="/account"
+                className={
+                  pathname.startsWith("/account")
+                    ? "text-ns-gold"
+                    : "hover:text-ns-cream"
+                }
+              >
+                Account
+              </Link>
               {session?.role === "admin" && (
                 <Link
                   href="/admin"

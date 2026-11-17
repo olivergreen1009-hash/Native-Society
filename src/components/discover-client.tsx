@@ -10,6 +10,7 @@ export function DiscoverClient() {
   const [refreshAt, setRefreshAt] = useState("");
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
+  const [paused, setPaused] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -22,11 +23,13 @@ export function DiscoverClient() {
     const json = (await res.json()) as {
       profiles: Profile[];
       batchId: string;
-      refreshAt: string;
+      refreshAt: string | null;
+      paused?: boolean;
     };
-    setProfiles(json.profiles);
-    setBatchId(json.batchId);
-    setRefreshAt(json.refreshAt);
+    setPaused(Boolean(json.paused));
+    setProfiles(json.profiles ?? []);
+    setBatchId(json.batchId ?? "");
+    setRefreshAt(json.refreshAt ?? "");
   }, []);
 
   useEffect(() => {
@@ -83,9 +86,20 @@ export function DiscoverClient() {
           {notice}
         </p>
       )}
+      {paused && (
+        <p className="mt-8 rounded border border-ns-gold/30 bg-ns-surface p-6 text-sm text-ns-muted">
+          Discovery is paused. You will not receive new introductions, and others
+          will not see you in new batches. Existing matches and messages are
+          unchanged. Resume in{" "}
+          <a href="/account" className="text-ns-gold hover:underline">
+            Account settings
+          </a>
+          .
+        </p>
+      )}
       {loading ? (
         <p className="mt-12 text-ns-muted">Preparing your batch…</p>
-      ) : profiles.length === 0 ? (
+      ) : !paused && profiles.length === 0 ? (
         <p className="mt-12 rounded border border-ns-border bg-ns-surface p-8 text-sm text-ns-muted">
           {notice || "No introductions remain this week. Your next batch arrives on the refresh date above."}
         </p>
