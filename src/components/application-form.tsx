@@ -58,6 +58,12 @@ export function ApplicationForm() {
   const [dobMonth, setDobMonth] = useState("");
   const [dobDay, setDobDay] = useState("");
   const [dobYear, setDobYear] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [currentArea, setCurrentArea] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [nycYearsBefore18, setNycYearsBefore18] = useState("");
   const [gender, setGender] = useState("");
   const [seeking, setSeeking] = useState<string[]>([]);
   const [highSchool, setHighSchool] = useState<HighSchoolRecord>(emptyHighSchool);
@@ -85,39 +91,52 @@ export function ApplicationForm() {
     setHighSchool((prev) => ({ ...prev, ...patch }));
   };
 
-  const validateStep = (data: FormData, targetStep: number): boolean => {
-    if (targetStep >= 1) {
-      const name = String(data.get("name") ?? "").trim();
-      const email = String(data.get("email") ?? "").trim();
-      if (!name || !email || !dateOfBirth || age === null) {
-        setError("Complete name, email, and date of birth.");
-        return false;
-      }
-      if (age < 18) {
-        setError("You must be at least 18 to apply.");
-        return false;
-      }
-      if (!String(data.get("currentArea") ?? "")) {
-        setError("Select your current area.");
-        return false;
-      }
+  const validateAboutYou = (): boolean => {
+    if (!name.trim() || !email.trim() || !dateOfBirth || age === null) {
+      setError("Complete name, email, and date of birth.");
+      return false;
     }
-    if (targetStep >= 2) {
-      const hs = highSchool;
-      if (
-        !hs.schoolName.trim() ||
-        !hs.schoolType ||
-        !hs.graduationYear ||
-        !hs.familyHomeDuringHighSchool
-      ) {
-        setError("Complete the required high school section.");
-        return false;
-      }
-      if (!String(data.get("nycYearsBefore18") ?? "")) {
-        setError("Select how long you lived in NYC before turning 18.");
-        return false;
-      }
+    if (age < 18) {
+      setError("You must be at least 18 to apply.");
+      return false;
     }
+    if (!currentArea) {
+      setError("Select your current area.");
+      return false;
+    }
+    return true;
+  };
+
+  const validateNycSchool = (): boolean => {
+    const hs = highSchool;
+    if (
+      !hs.schoolName.trim() ||
+      !hs.schoolType ||
+      !hs.graduationYear ||
+      !hs.familyHomeDuringHighSchool
+    ) {
+      setError("Complete the required high school section.");
+      return false;
+    }
+    if (!nycYearsBefore18) {
+      setError("Select how long you lived in NYC before turning 18.");
+      return false;
+    }
+    return true;
+  };
+
+  const validateCurrentStep = (activeStep: number): boolean => {
+    let ok = false;
+    if (activeStep === 0) ok = validateAboutYou();
+    else if (activeStep === 1) ok = validateNycSchool();
+    else ok = true;
+    if (ok) setError("");
+    return ok;
+  };
+
+  const validateAllSteps = (): boolean => {
+    if (!validateAboutYou()) return false;
+    if (!validateNycSchool()) return false;
     setError("");
     return true;
   };
@@ -128,11 +147,11 @@ export function ApplicationForm() {
     const data = new FormData(form);
 
     if (step < STEPS.length - 1) {
-      if (validateStep(data, step + 1)) setStep((s) => s + 1);
+      if (validateCurrentStep(step)) setStep((s) => s + 1);
       return;
     }
 
-    if (!validateStep(data, 2)) return;
+    if (!validateAllSteps()) return;
 
     setError("");
     setLoading(true);
@@ -192,15 +211,15 @@ export function ApplicationForm() {
       return;
     }
 
-    const occupation = String(data.get("occupation") ?? "").trim();
+    const occupationTrimmed = occupation.trim();
 
     const payload: ApplicationSubmitBody = {
-      name: String(data.get("name") ?? "").trim(),
-      email: String(data.get("email") ?? "").trim(),
+      name: name.trim(),
+      email: email.trim(),
       emailVerified: false,
       dateOfBirth,
-      currentArea: String(data.get("currentArea") ?? ""),
-      neighborhood: String(data.get("neighborhood") ?? "").trim() || undefined,
+      currentArea,
+      neighborhood: neighborhood.trim() || undefined,
       gender,
       genderSelfDescribe,
       seekingGenders: [...seeking],
@@ -208,14 +227,14 @@ export function ApplicationForm() {
       seekingAgeMax,
       locationPreference,
       relationshipIntention,
-      occupation: occupation || undefined,
+      occupation: occupationTrimmed || undefined,
       highSchool: {
         schoolName: highSchool.schoolName.trim(),
         schoolType: highSchool.schoolType,
         graduationYear: highSchool.graduationYear,
         familyHomeDuringHighSchool: highSchool.familyHomeDuringHighSchool,
       },
-      nycYearsBefore18: String(data.get("nycYearsBefore18") ?? ""),
+      nycYearsBefore18,
       heardAbout: String(data.get("heardAbout") ?? ""),
       referrerName: String(data.get("referrerName") ?? "").trim() || undefined,
       consents,
@@ -279,7 +298,14 @@ export function ApplicationForm() {
       {step === 0 && (
         <fieldset className="space-y-5 border-none p-0 md:space-y-6">
           <legend className="font-heading text-lg text-ns-cream">About you</legend>
-          <Field label="Full name" name="name" required autoComplete="name" />
+          <Field
+            label="Full name"
+            name="name"
+            required
+            autoComplete="name"
+            value={name}
+            onChange={setName}
+          />
           <div>
             <label className={labelClass} htmlFor="email">
               Email
@@ -293,6 +319,8 @@ export function ApplicationForm() {
               type="email"
               required
               autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className={inputClass}
             />
           </div>
@@ -311,16 +339,26 @@ export function ApplicationForm() {
             outsideCohort={outsideCohort}
             age={age}
           />
-          <Select label="Current area" name="currentArea" required options={CURRENT_AREAS} />
+          <StatefulSelect
+            label="Current area"
+            value={currentArea}
+            onChange={setCurrentArea}
+            options={CURRENT_AREAS}
+            required
+          />
           <Field
             label="Neighborhood (optional)"
             name="neighborhood"
             placeholder="e.g. West Village"
+            value={neighborhood}
+            onChange={setNeighborhood}
           />
           <Field
             label="Occupation / industry (optional)"
             name="occupation"
             placeholder="e.g. Finance · Design"
+            value={occupation}
+            onChange={setOccupation}
           />
         </fieldset>
       )}
@@ -328,11 +366,12 @@ export function ApplicationForm() {
       {step === 1 && (
         <fieldset className="space-y-5 border-none p-0 md:space-y-6">
           <legend className="font-heading text-lg text-ns-cream">NYC roots & school</legend>
-          <Select
+          <StatefulSelect
             label="How long did you live in New York City before turning 18?"
-            name="nycYearsBefore18"
-            required
+            value={nycYearsBefore18}
+            onChange={setNycYearsBefore18}
             options={NYC_YEARS_BEFORE_18}
+            required
           />
           <SchoolNameInput
             label="High school name"
@@ -726,11 +765,11 @@ function Field({
   const isControlled = value !== undefined && onChange !== undefined;
   return (
     <div>
-      <label className={labelClass} htmlFor={isControlled ? undefined : name}>
+      <label className={labelClass} htmlFor={name}>
         {label}
       </label>
       <input
-        id={isControlled ? undefined : name}
+        id={name}
         name={isControlled ? undefined : name}
         type={type}
         required={required && !isControlled}
