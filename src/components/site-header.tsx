@@ -44,15 +44,12 @@ export function SiteHeader({
         <nav className="flex items-center gap-3 text-sm text-ns-muted md:gap-6">
           {variant === "public" ? (
             <>
-              <Link href="/apply" className="hidden hover:text-ns-cream sm:inline">
-                Apply
-              </Link>
-              <Link href="/login" className="hover:text-ns-cream">
+              <Link href="/login" className="hidden min-h-11 items-center hover:text-ns-cream sm:inline-flex">
                 Sign in
               </Link>
               <Link
                 href="/apply"
-                className="rounded-full border border-ns-gold/60 px-4 py-1.5 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
+                className="inline-flex min-h-11 items-center rounded-full border border-ns-gold/60 px-4 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
               >
                 Apply
               </Link>
@@ -112,7 +109,7 @@ export function SiteHeader({
               <button
                 type="button"
                 onClick={signOut}
-                className="rounded-full border border-ns-border px-3 py-1.5 text-xs uppercase tracking-widest text-ns-cream transition hover:border-ns-gold"
+                className="min-h-11 rounded-full border border-ns-border px-3 text-xs uppercase tracking-widest text-ns-cream transition hover:border-ns-gold"
               >
                 Sign out
               </button>

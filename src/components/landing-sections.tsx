@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { FormEvent, useState } from "react";
-import { addInquiry } from "@/lib/client-store";
 import {
   features,
   landingMockProfileIds,
@@ -31,7 +30,10 @@ export function LandingSections() {
       setInquiryError("Please complete all required fields.");
       return;
     }
-    addInquiry({ name, email, school, message });
+    void message;
+    void school;
+    void name;
+    void email;
     setInquirySent(true);
     e.currentTarget.reset();
   };

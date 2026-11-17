@@ -1,6 +1,7 @@
 "use client";
 
 import { foundingGalleryProfileIds, societyProfiles, DEMO_MEMBER } from "./sample-data";
+import { poolsCouldReciprocate } from "./application-validation";
 import type {
   CurationMap,
   FoundingQuestionnaire,
@@ -170,6 +171,19 @@ export function addInquiry(
     },
     ...list,
   ]);
+}
+
+/** Count other pending applications with a mutually compatible pool key (demo). */
+export function countReciprocalPoolCandidates(
+  poolKey: InquirySubmission["poolKey"],
+  excludeId?: string,
+): number {
+  const list = getInquiries();
+  return list.filter(
+    (inq) =>
+      inq.id !== excludeId &&
+      poolsCouldReciprocate(poolKey, inq.poolKey),
+  ).length;
 }
 
 export function getMemberNotes(): MemberNotesMap {
