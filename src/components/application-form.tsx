@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useState, type ReactNode } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ADMISSION_AGE_MAX,
   ADMISSION_AGE_MIN,
@@ -50,9 +50,34 @@ function daysInMonth(month: string, year: string): number {
   return new Date(y, m, 0).getDate();
 }
 
+function scrollApplyToTop() {
+  if (typeof window === "undefined") return;
+  try {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  } catch {
+    window.scrollTo(0, 0);
+  }
+}
+
 export function ApplicationForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  const skipStepScrollRef = useRef(true);
+
+  useEffect(() => {
+    history.scrollRestoration = "manual";
+    return () => {
+      history.scrollRestoration = "auto";
+    };
+  }, []);
+
+  useEffect(() => {
+    if (skipStepScrollRef.current) {
+      skipStepScrollRef.current = false;
+      return;
+    }
+    scrollApplyToTop();
+  }, [step]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [dobMonth, setDobMonth] = useState("");
@@ -287,6 +312,7 @@ export function ApplicationForm() {
         return;
       }
       setLoading(false);
+      scrollApplyToTop();
       if (json.applicationId) {
         router.push(
           `/application/status?id=${encodeURIComponent(json.applicationId)}`,
