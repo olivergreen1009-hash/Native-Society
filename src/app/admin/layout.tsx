@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 
-export const instant = false;
-
 export default function AdminLayout({
   children,
 }: {
