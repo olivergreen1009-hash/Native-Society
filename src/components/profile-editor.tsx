@@ -2,6 +2,15 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { FormField, inputClassName } from "@/components/ui/form-field";
+import {
+  NYC_CHILDHOOD_BOROUGHS,
+  SUMMER_DESTINATIONS,
+} from "@/lib/application-options";
+import {
+  ICEBREAKER_MAX_LENGTH,
+  normalizeIcebreaker,
+  validateIcebreaker,
+} from "@/lib/profile-field-validation";
 import type { GenderIdentity, Preferences, Profile } from "@/types/domain";
 
 const emptyProfile = (userId: string): Profile => ({
@@ -41,6 +50,7 @@ export function ProfileEditor({ onboarding }: { onboarding?: boolean }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [prefs, setPrefs] = useState<Preferences | null>(null);
   const [saved, setSaved] = useState(false);
+  const [fieldError, setFieldError] = useState("");
 
   useEffect(() => {
     void (async () => {
@@ -65,9 +75,29 @@ export function ProfileEditor({ onboarding }: { onboarding?: boolean }) {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const favoriteNycDetail = normalizeIcebreaker(
+      String(data.get("favoriteNycDetail") ?? profile.favoriteNycDetail ?? ""),
+    );
+    const icebreakerErr = validateIcebreaker(favoriteNycDetail);
+    if (icebreakerErr) {
+      setFieldError(icebreakerErr);
+      return;
+    }
+    setFieldError("");
+
+    const raisedRaw = String(data.get("raisedInBorough") ?? "").trim();
+    const summerRaw = String(data.get("summerDestination") ?? "").trim();
+
     const payload = {
       ...profile,
       interests,
+      raisedInBorough: raisedRaw || null,
+      summerDestination: summerRaw || null,
+      summerOther:
+        summerRaw === "Other"
+          ? String(data.get("summerOther") ?? "").trim() || null
+          : null,
+      favoriteNycDetail: favoriteNycDetail || null,
       prompts: profile.prompts.map((p, i) => ({
         ...p,
         answer: String(data.get(`prompt-${i}`) ?? "") || p.answer,
@@ -91,6 +121,11 @@ export function ProfileEditor({ onboarding }: { onboarding?: boolean }) {
 
   return (
     <form onSubmit={onSave} className="mt-8 space-y-6">
+      {fieldError ? (
+        <p className="text-sm text-red-400" role="alert">
+          {fieldError}
+        </p>
+      ) : null}
       <FormField label="First name">
         <input
           className={inputClassName}
@@ -129,6 +164,45 @@ export function ProfileEditor({ onboarding }: { onboarding?: boolean }) {
           onChange={(ev) =>
             setProfile({ ...profile, schoolLine: ev.target.value })
           }
+        />
+      </FormField>
+      <FormField label="Raised in (optional)" name="raisedInBorough">
+        <select
+          name="raisedInBorough"
+          className={inputClassName}
+          defaultValue={profile.raisedInBorough ?? ""}
+        >
+          <option value="">Select…</option>
+          {NYC_CHILDHOOD_BOROUGHS.map((b) => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
+      </FormField>
+      <FormField label="Where you summer (optional)">
+        <select
+          name="summerDestination"
+          className={inputClassName}
+          defaultValue={profile.summerDestination ?? ""}
+        >
+          <option value="">Select…</option>
+          {SUMMER_DESTINATIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </FormField>
+      <FormField label="Favorite NYC detail (optional)">
+        <p className="mt-1 text-xs text-ns-muted">
+          Up to {ICEBREAKER_MAX_LENGTH} characters. Visible after mutual interest only.
+        </p>
+        <input
+          name="favoriteNycDetail"
+          className={inputClassName}
+          maxLength={ICEBREAKER_MAX_LENGTH}
+          defaultValue={profile.favoriteNycDetail ?? ""}
         />
       </FormField>
       <FormField label="Bio">

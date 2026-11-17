@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
 import { repositories } from "@/repositories/memory";
+import {
+  normalizeIcebreaker,
+  validateIcebreaker,
+} from "@/lib/profile-field-validation";
 import type { Preferences, Profile } from "@/types/domain";
 
 export async function GET() {
@@ -28,8 +32,15 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const favoriteNycDetail = normalizeIcebreaker(body.profile.favoriteNycDetail);
+  const icebreakerErr = validateIcebreaker(favoriteNycDetail);
+  if (icebreakerErr) {
+    return NextResponse.json({ error: icebreakerErr }, { status: 400 });
+  }
+
   const savedProfile = await repositories.profiles.upsert({
     ...body.profile,
+    favoriteNycDetail: favoriteNycDetail || null,
     completedOnboarding: true,
     discoverable: true,
   });

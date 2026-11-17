@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SESSION_COOKIE, decodeSession } from "@/lib/auth";
 import { getFoundingQuestionnaire } from "@/lib/client-store";
-import {
-  currentWeekLabel,
-  weeklyGalleryProfileIds,
-} from "@/lib/member-gallery-profiles";
+import { currentWeekLabel } from "@/lib/member-gallery-profiles";
+import { WEEKLY_SELECTION_NOTE } from "@/lib/member-club-copy";
 
 export default function MemberDashboardPage() {
   const [name, setName] = useState("Member");
@@ -26,8 +24,6 @@ export default function MemberDashboardPage() {
     setQuestionnaireDone(Boolean(q.submittedAt));
   }, []);
 
-  const batchSize = weeklyGalleryProfileIds().length;
-
   return (
     <div>
       <p className="text-xs uppercase tracking-[0.35em] text-ns-gold">Member</p>
@@ -39,6 +35,9 @@ export default function MemberDashboardPage() {
         profile current, and express interest only when the fit feels right—no public
         browsing, no unsolicited messages.
       </p>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ns-muted">
+        {WEEKLY_SELECTION_NOTE}
+      </p>
 
       <div className="mt-10 rounded border border-ns-gold/40 bg-ns-surface p-6 md:p-8">
         <p className="text-xs uppercase tracking-widest text-ns-gold">Next steps</p>
@@ -46,7 +45,7 @@ export default function MemberDashboardPage() {
           <Step
             done={false}
             title="Review this week's batch"
-            body={`${batchSize} sample profiles · week of ${currentWeekLabel()}`}
+            body={`Small batch · week of ${currentWeekLabel()}`}
             href="/member/gallery"
             cta="Open gallery"
           />
@@ -67,15 +66,6 @@ export default function MemberDashboardPage() {
         </ol>
       </div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
-        <StatCard label="This week" value={String(batchSize)} hint="Introductions" />
-        <StatCard label="Status" value="Active" hint="Approved member" />
-        <StatCard
-          label="Questionnaire"
-          value={questionnaireDone ? "Done" : "Pending"}
-          hint="Optional"
-        />
-      </div>
     </div>
   );
 }
@@ -109,23 +99,5 @@ function Step({
         {cta}
       </Link>
     </li>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-}) {
-  return (
-    <div className="rounded border border-ns-border bg-ns-surface p-5">
-      <p className="text-xs uppercase tracking-widest text-ns-muted">{label}</p>
-      <p className="font-heading mt-2 text-2xl text-ns-gold">{value}</p>
-      <p className="mt-1 text-xs text-ns-muted">{hint}</p>
-    </div>
   );
 }

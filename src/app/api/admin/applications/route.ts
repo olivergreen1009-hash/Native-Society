@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
 import { repositories } from "@/repositories/memory";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { upsertMemberProfileFromApproval } from "@/lib/supabase/member-profiles";
 import type { ApplicationStatus } from "@/types/domain";
 
 async function requireAdmin() {
@@ -47,6 +49,25 @@ export async function PATCH(request: Request) {
       await repositories.users.update(existingUser.id, {
         approvedAt: new Date().toISOString(),
       });
+      const profile = await repositories.profiles.findByUserId(existingUser.id);
+      const supabase = getSupabaseServerClient();
+      if (supabase) {
+        await upsertMemberProfileFromApproval(supabase, {
+          userId: existingUser.id,
+          firstName: updated.fullName.split(" ")[0] ?? updated.fullName,
+          neighborhood: updated.location,
+          schoolLine: updated.schoolHistory,
+          bio: profile?.bio ?? "",
+          photoUrl: profile?.photos[0]?.url,
+        });
+        if (profile) {
+          await repositories.profiles.upsert({
+            ...profile,
+            discoverable: true,
+            moderationStatus: "approved",
+          });
+        }
+      }
     }
   }
 

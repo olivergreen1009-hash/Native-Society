@@ -9,6 +9,11 @@ export const MEMBER_PROFILE_KEY = "ns-member-profile-v2";
 
 export type StoredMemberProfile = MemberAccount & {
   photoDataUrl?: string;
+  schoolLine?: string;
+  raisedInBorough?: string;
+  summerDestination?: string;
+  summerOther?: string;
+  favoriteNycDetail?: string;
   seekingAgeMin: number;
   seekingAgeMax: number;
   locationPreference: string;
@@ -17,6 +22,8 @@ export type StoredMemberProfile = MemberAccount & {
 
 export const defaultMemberProfile = (): StoredMemberProfile => ({
   ...DEMO_MEMBER,
+  schoolLine: "Brearley → Wesleyan",
+  summerDestination: "Hamptons",
   seekingAgeMin: 28,
   seekingAgeMax: 42,
   locationPreference: LOCATION_PREFERENCES[0] ?? "Manhattan only",

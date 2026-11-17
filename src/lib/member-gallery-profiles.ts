@@ -5,15 +5,17 @@ import {
 import type { SocietyProfile } from "@/lib/types";
 
 function toSocietyProfile(example: LandingExampleProfile): SocietyProfile {
-  const school = example.schoolLine.split("→")[0]?.trim() ?? example.schoolLine;
   return {
     id: example.id,
     firstName: example.firstName,
     displayInitial: example.firstName.charAt(0),
     age: example.age,
     neighborhood: example.neighborhood,
-    school,
+    schoolLine: example.schoolLine,
+    school: example.schoolLine,
     schoolVisibility: "visible",
+    summerDestination: example.summerDestination,
+    isSample: true,
     profession: example.lookingFor,
     memberBio: example.prompt,
     interests: example.interests,
@@ -32,10 +34,19 @@ export function weeklyGalleryProfileIds(): string[] {
   return weeklyRecommendationBatch().map((p) => p.id);
 }
 
+const profileCache = new Map<string, SocietyProfile>();
+
+export function cacheGalleryProfiles(profiles: SocietyProfile[]): void {
+  profileCache.clear();
+  for (const p of profiles) profileCache.set(p.id, p);
+}
+
 export function getMemberGalleryProfile(
   id: string,
 ): SocietyProfile | undefined {
-  return weeklyRecommendationBatch().find((p) => p.id === id);
+  return (
+    profileCache.get(id) ?? weeklyRecommendationBatch().find((p) => p.id === id)
+  );
 }
 
 export function currentWeekLabel(): string {

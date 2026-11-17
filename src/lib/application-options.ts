@@ -11,6 +11,15 @@ export const CURRENT_AREAS = [
   "Elsewhere",
 ] as const;
 
+export const NYC_CHILDHOOD_BOROUGHS = [
+  "Manhattan",
+  "Brooklyn",
+  "Queens",
+  "Bronx",
+  "Staten Island",
+  "Raised in the city",
+] as const;
+
 export const FAMILY_HOME_DURING_HIGH_SCHOOL = [
   "Manhattan",
   "Brooklyn",

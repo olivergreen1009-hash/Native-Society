@@ -1,15 +1,34 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import {
-  currentWeekLabel,
-  weeklyRecommendationBatch,
-} from "@/lib/member-gallery-profiles";
+import { useCallback, useEffect, useState } from "react";
+import { MemberGalleryCard } from "@/components/member-gallery-card";
+import { WEEKLY_SELECTION_NOTE } from "@/lib/member-club-copy";
+import { currentWeekLabel } from "@/lib/member-gallery-profiles";
+import type { SocietyProfile } from "@/lib/types";
 
 export default function GalleryPage() {
-  const profiles = weeklyRecommendationBatch();
+  const [profiles, setProfiles] = useState<SocietyProfile[]>([]);
+  const [usingSamples, setUsingSamples] = useState(false);
+  const [loading, setLoading] = useState(true);
   const weekOf = currentWeekLabel();
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch("/api/member/gallery");
+    setLoading(false);
+    if (!res.ok) return;
+    const json = (await res.json()) as {
+      profiles: SocietyProfile[];
+      usingSamples: boolean;
+    };
+    setProfiles(json.profiles ?? []);
+    setUsingSamples(Boolean(json.usingSamples));
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   return (
     <div>
@@ -19,56 +38,39 @@ export default function GalleryPage() {
             Weekly introductions
           </p>
           <h1 className="font-heading mt-3 text-4xl text-ns-cream">This week</h1>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-ns-muted">
+            {WEEKLY_SELECTION_NOTE}
+          </p>
         </div>
         <p className="text-xs uppercase tracking-widest text-ns-muted">
           Week of {weekOf}
         </p>
       </div>
       <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ns-muted">
-        Placeholder batch from sample profiles—refreshes on a weekly cadence in
-        production. Tap a card for detail; interest is private until mutual.
+        {usingSamples
+          ? "Illustrative examples until more approved members are in your pool. Tap a card for detail—interest is private until mutual."
+          : "Tap a card for detail; interest is private until mutual."}
       </p>
 
-      <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-2">
-        {profiles.map((profile) => (
-          <Link
-            key={profile.id}
-            href={`/member/gallery/${profile.id}`}
-            className="group overflow-hidden rounded border border-ns-border bg-ns-surface transition hover:border-ns-gold/50"
-          >
-            <div className="relative aspect-[3/4] overflow-hidden">
-              <Image
-                src={profile.imageUrl}
-                alt=""
-                fill
-                className="object-cover transition duration-500 group-hover:scale-105"
-                sizes="(max-width: 1024px) 50vw, 40vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-ns-bg/20 to-transparent" />
-              <div className="absolute bottom-0 p-5">
-                <p className="font-heading text-xl text-ns-cream">
-                  {profile.firstName} · {profile.age}
-                </p>
-                <p className="text-xs text-ns-muted">{profile.neighborhood}</p>
-                <p className="mt-1 text-xs text-ns-gold">{profile.school}</p>
-                <ul className="mt-2 flex flex-wrap gap-1">
-                  {profile.interests.slice(0, 3).map((interest) => (
-                    <li
-                      key={interest}
-                      className="rounded border border-ns-border/60 px-2 py-0.5 text-[10px] text-ns-cream"
-                    >
-                      {interest}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {loading ? (
+        <p className="mt-10 text-sm text-ns-muted">Preparing your batch…</p>
+      ) : (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 sm:gap-6 lg:gap-8">
+          {profiles.map((profile) => (
+            <MemberGalleryCard
+              key={profile.id}
+              profile={profile}
+              href={`/member/gallery/${profile.id}`}
+            />
+          ))}
+        </div>
+      )}
 
       <p className="mt-10 text-center text-xs text-ns-muted">
-        New introductions every Monday · pass or express interest from the detail view
+        New introductions every Monday · pass or express interest from the{" "}
+        <Link href="/member/gallery" className="text-ns-gold hover:underline">
+          detail view
+        </Link>
       </p>
     </div>
   );

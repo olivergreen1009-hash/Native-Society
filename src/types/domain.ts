@@ -114,6 +114,10 @@ export interface Profile {
   prompts: ProfilePrompt[];
   interests: string[];
   schoolLine: string | null;
+  summerDestination?: string | null;
+  summerOther?: string | null;
+  raisedInBorough?: string | null;
+  favoriteNycDetail?: string | null;
   neighborhood: string;
   discoverable: boolean;
   completedOnboarding: boolean;

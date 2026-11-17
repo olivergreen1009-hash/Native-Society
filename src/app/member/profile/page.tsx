@@ -5,8 +5,15 @@ import {
   ADMISSION_AGE_MAX,
   ADMISSION_AGE_MIN,
   LOCATION_PREFERENCES,
+  NYC_CHILDHOOD_BOROUGHS,
   RELATIONSHIP_INTENTIONS,
+  SUMMER_DESTINATIONS,
 } from "@/lib/application-options";
+import {
+  ICEBREAKER_MAX_LENGTH,
+  normalizeIcebreaker,
+  validateIcebreaker,
+} from "@/lib/profile-field-validation";
 import {
   loadMemberProfile,
   saveMemberProfile,
@@ -20,6 +27,7 @@ export default function MemberProfilePage() {
   const [profile, setProfile] = useState<StoredMemberProfile | null>(null);
   const [saved, setSaved] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const [fieldError, setFieldError] = useState("");
 
   useEffect(() => {
     setProfile(loadMemberProfile());
@@ -51,11 +59,30 @@ export default function MemberProfilePage() {
   const onSave = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+    const favoriteNycDetail = normalizeIcebreaker(
+      String(data.get("favoriteNycDetail") ?? ""),
+    );
+    const icebreakerErr = validateIcebreaker(favoriteNycDetail);
+    if (icebreakerErr) {
+      setFieldError(icebreakerErr);
+      return;
+    }
+    setFieldError("");
+    const summerDestination = String(data.get("summerDestination") ?? "").trim();
+    const summerOther =
+      summerDestination === "Other"
+        ? String(data.get("summerOther") ?? "").trim()
+        : undefined;
     const next: StoredMemberProfile = {
       ...profile,
       name: String(data.get("name") ?? profile.name),
       neighborhood: String(data.get("neighborhood") ?? profile.neighborhood),
       school: String(data.get("school") ?? profile.school),
+      schoolLine: String(data.get("schoolLine") ?? profile.schoolLine ?? profile.school),
+      raisedInBorough: String(data.get("raisedInBorough") ?? "").trim() || undefined,
+      summerDestination: summerDestination || undefined,
+      summerOther,
+      favoriteNycDetail: favoriteNycDetail || undefined,
       bio: String(data.get("bio") ?? profile.bio),
       seekingAgeMin: Number(data.get("seekingAgeMin")),
       seekingAgeMax: Number(data.get("seekingAgeMax")),
@@ -78,6 +105,11 @@ export default function MemberProfilePage() {
       </p>
 
       <form onSubmit={onSave} className="mt-10 space-y-8">
+        {fieldError && (
+          <p className="text-sm text-red-400" role="alert">
+            {fieldError}
+          </p>
+        )}
         <section className="space-y-4">
           <p className="font-heading text-lg text-ns-cream">Photo</p>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -110,7 +142,40 @@ export default function MemberProfilePage() {
           <p className="font-heading text-lg text-ns-cream">About you</p>
           <Field label="Display name" name="name" defaultValue={profile.name} />
           <Field label="Neighborhood" name="neighborhood" defaultValue={profile.neighborhood} />
-          <Field label="School lineage" name="school" defaultValue={profile.school} />
+          <Select
+            label="Raised in (optional)"
+            name="raisedInBorough"
+            options={[...NYC_CHILDHOOD_BOROUGHS]}
+            defaultValue={profile.raisedInBorough ?? ""}
+            optional
+          />
+          <Field
+            label="School lineage"
+            name="schoolLine"
+            defaultValue={profile.schoolLine ?? profile.school}
+          />
+          <Select
+            label="Where you summer (optional)"
+            name="summerDestination"
+            options={[...SUMMER_DESTINATIONS]}
+            defaultValue={profile.summerDestination ?? ""}
+            optional
+          />
+          {profile.summerDestination === "Other" ||
+          String(profile.summerOther ?? "") ? (
+            <Field
+              label="Summer — Other"
+              name="summerOther"
+              defaultValue={profile.summerOther ?? ""}
+            />
+          ) : null}
+          <ShortTextField
+            label="Favorite NYC detail"
+            name="favoriteNycDetail"
+            defaultValue={profile.favoriteNycDetail ?? ""}
+            maxLength={ICEBREAKER_MAX_LENGTH}
+            helper="Optional. Shown only after mutual interest—never on gallery cards."
+          />
           <div>
             <label className="text-xs uppercase tracking-widest text-ns-gold">Bio</label>
             <textarea
@@ -209,16 +274,46 @@ function Field({
   );
 }
 
+function ShortTextField({
+  label,
+  name,
+  defaultValue,
+  maxLength,
+  helper,
+}: {
+  label: string;
+  name: string;
+  defaultValue: string;
+  maxLength: number;
+  helper?: string;
+}) {
+  return (
+    <div>
+      <label className="text-xs uppercase tracking-widest text-ns-gold">{label}</label>
+      {helper ? <p className="mt-1 text-xs text-ns-muted">{helper}</p> : null}
+      <input
+        name={name}
+        type="text"
+        defaultValue={defaultValue}
+        maxLength={maxLength}
+        className="mt-2 w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none focus:border-ns-gold"
+      />
+    </div>
+  );
+}
+
 function Select({
   label,
   name,
   options,
   defaultValue,
+  optional,
 }: {
   label: string;
   name: string;
   options: readonly string[];
   defaultValue: string;
+  optional?: boolean;
 }) {
   return (
     <div>
@@ -228,6 +323,9 @@ function Select({
         defaultValue={defaultValue}
         className="mt-2 w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none focus:border-ns-gold"
       >
+        {optional ? (
+          <option value="">Select…</option>
+        ) : null}
         {options.map((opt) => (
           <option key={opt} value={opt}>
             {opt}

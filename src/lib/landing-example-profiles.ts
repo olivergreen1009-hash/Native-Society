@@ -4,6 +4,7 @@ export interface LandingExampleProfile {
   age: number;
   neighborhood: string;
   schoolLine: string;
+  summerDestination?: string;
   interests: string[];
   prompt: string;
   lookingFor: string;
@@ -17,6 +18,7 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     age: 32,
     neighborhood: "Upper East Side",
     schoolLine: "Chapin → Dartmouth",
+    summerDestination: "Hamptons",
     interests: [
       "Gallery openings",
       "tennis",
@@ -35,6 +37,7 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     age: 35,
     neighborhood: "West Village",
     schoolLine: "Trinity → Georgetown",
+    summerDestination: "Nantucket",
     interests: ["Sailing", "wine", "vinyl records", "weekends upstate"],
     prompt:
       "I'm happiest at a long dinner with good conversation and no phones on the table.",
@@ -48,6 +51,7 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     age: 27,
     neighborhood: "Tribeca",
     schoolLine: "Brearley → Brown",
+    summerDestination: "Hamptons",
     interests: ["Pilates", "supper clubs", "art fairs", "Hamptons summers"],
     prompt:
       "I'll always say yes to a spontaneous trip somewhere with good food.",
@@ -61,6 +65,7 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     age: 29,
     neighborhood: "Brooklyn Heights",
     schoolLine: "Poly Prep → Williams",
+    summerDestination: "Newport",
     interests: ["Cycling", "cooking", "jazz", "the occasional round of golf"],
     prompt: "I make a very good risotto and will absolutely cook for you.",
     lookingFor: "Long-term partnership",
@@ -73,6 +78,7 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     age: 38,
     neighborhood: "Riverdale",
     schoolLine: "Fieldston → Penn",
+    summerDestination: "Europe",
     interests: ["Reading", "hiking", "wine tastings", "theater"],
     prompt:
       "I've been in this city my whole life and I'm still finding new places I love.",

@@ -11,8 +11,17 @@ export interface SocietyProfile {
   displayInitial: string;
   age: number;
   neighborhood: string;
+  /** Childhood borough or “Raised in the city” — optional NYC roots */
+  raisedInBorough?: string;
+  favoriteNycDetail?: string;
+  /** Full lineage for gallery cards, e.g. Chapin → Dartmouth */
+  schoolLine?: string;
   school: string;
   schoolVisibility: SchoolVisibility;
+  summerDestination?: string;
+  summerOther?: string;
+  /** Landing-style sample when true */
+  isSample?: boolean;
   profession: string;
   memberBio: string;
   interests: string[];
