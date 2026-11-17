@@ -8,6 +8,7 @@ const protectedPrefixes = [
   "/profile",
   "/onboarding",
   "/account",
+  "/member",
   "/admin",
 ];
 
@@ -30,21 +31,15 @@ export function middleware(request: NextRequest) {
   }
 
   if ((pathname === "/login" || pathname === "/signup") && session) {
-    const dest = session.role === "admin" ? "/admin" : "/discover";
+    const dest =
+      session.role === "admin" ? "/admin" : "/member/dashboard";
     return NextResponse.redirect(new URL(dest, request.url));
   }
 
-  if (pathname.startsWith("/member")) {
-    const map: Record<string, string> = {
-      "/member/dashboard": "/discover",
-      "/member/gallery": "/discover",
-      "/member/profile": "/profile",
-      "/member/introductions": "/matches",
-    };
-    const dest = map[pathname];
-    if (dest) {
-      return NextResponse.redirect(new URL(dest, request.url));
-    }
+  if (pathname.startsWith("/member") && !session) {
+    const login = new URL("/login", request.url);
+    login.searchParams.set("next", pathname);
+    return NextResponse.redirect(login);
   }
 
   return NextResponse.next();

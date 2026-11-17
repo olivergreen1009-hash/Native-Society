@@ -1,0 +1,7 @@
+-- Admin UI reads applications via Next.js API routes (session cookie + getServerSession).
+--
+-- Recommended: set SUPABASE_SERVICE_ROLE_KEY in Vercel (server-only) so list/detail
+-- routes bypass RLS. Do not expose the service role key to the browser.
+--
+-- Alternative: add a SELECT policy on public.applications for a dedicated DB role
+-- or Supabase Auth claim once you move off demo admin cookies.

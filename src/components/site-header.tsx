@@ -57,42 +57,44 @@ export function SiteHeader({
           ) : (
             <>
               <Link
-                href="/discover"
+                href="/member/dashboard"
                 className={
-                  pathname.startsWith("/discover")
+                  pathname.startsWith("/member/dashboard")
                     ? "text-ns-gold"
-                    : "hover:text-ns-cream"
+                    : "hidden hover:text-ns-cream sm:inline"
                 }
               >
-                Discover
+                Home
               </Link>
               <Link
-                href="/matches"
+                href="/member/gallery"
                 className={
-                  pathname.startsWith("/matches")
+                  pathname.startsWith("/member/gallery")
                     ? "text-ns-gold"
-                    : "hover:text-ns-cream"
+                    : "hidden hover:text-ns-cream sm:inline"
                 }
               >
-                Matches
+                This week
               </Link>
               <Link
-                href="/profile"
+                href="/member/profile"
                 className={
-                  pathname === "/profile" ? "text-ns-gold" : "hover:text-ns-cream"
+                  pathname.startsWith("/member/profile")
+                    ? "text-ns-gold"
+                    : "hover:text-ns-cream"
                 }
               >
                 Profile
               </Link>
               <Link
-                href="/account"
+                href="/discover"
                 className={
-                  pathname.startsWith("/account")
+                  pathname.startsWith("/discover")
                     ? "text-ns-gold"
-                    : "hover:text-ns-cream"
+                    : "hidden hover:text-ns-cream md:inline"
                 }
               >
-                Account
+                Discover
               </Link>
               {session?.role === "admin" && (
                 <Link

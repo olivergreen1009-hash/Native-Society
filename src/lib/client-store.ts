@@ -1,6 +1,10 @@
 "use client";
 
-import { foundingGalleryProfileIds, societyProfiles, DEMO_MEMBER } from "./sample-data";
+import {
+  weeklyGalleryProfileIds,
+  weeklyRecommendationBatch,
+} from "@/lib/member-gallery-profiles";
+import { DEMO_MEMBER } from "./sample-data";
 import { poolsCouldReciprocate } from "./application-validation";
 import type {
   CurationMap,
@@ -36,7 +40,7 @@ function writeJson<T>(key: string, value: T): void {
 
 export function defaultCurationMap(): CurationMap {
   return {
-    [DEMO_MEMBER.id]: [...foundingGalleryProfileIds],
+    [DEMO_MEMBER.id]: [...weeklyGalleryProfileIds()],
   };
 }
 
@@ -57,8 +61,8 @@ export function setMemberGallery(
 /** Swap up to two profiles from the pool into the member gallery (demo refresh). */
 export function refreshMemberGallery(memberId: string): string[] {
   const map = getCurationMap();
-  const current = map[memberId] ?? foundingGalleryProfileIds;
-  const pool = societyProfiles.map((p) => p.id);
+  const current = map[memberId] ?? weeklyGalleryProfileIds();
+  const pool = weeklyRecommendationBatch().map((p) => p.id);
   const outside = pool.filter((id) => !current.includes(id));
   if (outside.length === 0) return current;
   const next = [...current];

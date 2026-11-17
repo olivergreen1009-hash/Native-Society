@@ -6,14 +6,21 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { setClientSession } from "@/lib/auth/client";
-import { accountToSession, authenticate } from "@/lib/auth";
+import {
+  DEMO_MEMBER_EMAIL,
+  DEMO_MEMBER_PASSWORD,
+  demoSessionFromCredentials,
+} from "@/lib/auth/demo-credentials";
+import type { SessionPayload } from "@/lib/auth/session";
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/discover";
+  const next = searchParams.get("next") ?? "/member/dashboard";
   const magicToken = searchParams.get("magic");
   const [mode, setMode] = useState<"password" | "magic">("password");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [magicInfo, setMagicInfo] = useState("");
   const [magicHref, setMagicHref] = useState("");
 
@@ -34,26 +41,47 @@ function LoginForm() {
     })();
   }, [magicToken, next, router]);
 
-  const onPassword = (e: FormEvent<HTMLFormElement>) => {
+  const onPassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+    setSubmitting(true);
     const data = new FormData(e.currentTarget);
-    const email = String(data.get("email") ?? "");
+    const email = String(data.get("email") ?? "").trim();
     const password = String(data.get("password") ?? "");
-    const account = authenticate(email, password);
-    if (!account) {
-      setError("Those credentials are not recognized.");
-      return;
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        role?: string;
+        session?: SessionPayload;
+        error?: string;
+      };
+
+      if (!res.ok) {
+        setError(
+          "Wrong email or password. Demo member: " +
+            `${DEMO_MEMBER_EMAIL} / ${DEMO_MEMBER_PASSWORD}.`,
+        );
+        return;
+      }
+
+      const session =
+        json.session ?? demoSessionFromCredentials(email, password);
+      if (session) setClientSession(session);
+
+      const role = json.role ?? session?.role ?? "member";
+      router.push(role === "admin" ? "/admin" : next);
+      router.refresh();
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setSubmitting(false);
     }
-    const session = accountToSession(account);
-    setClientSession(session);
-    void fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    router.push(account.role === "admin" ? "/admin" : next);
-    router.refresh();
   };
 
   const onMagic = async (e: FormEvent<HTMLFormElement>) => {
@@ -111,9 +139,10 @@ function LoginForm() {
           <Field label="Password" name="password" type="password" />
           <button
             type="submit"
-            className="w-full rounded-full bg-ns-gold py-3 text-sm uppercase tracking-widest text-ns-bg"
+            disabled={submitting}
+            className="w-full rounded-full bg-ns-gold py-3 text-sm uppercase tracking-widest text-ns-bg disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Enter
+            {submitting ? "Signing in…" : "Enter"}
           </button>
         </form>
       ) : (
@@ -141,6 +170,11 @@ function LoginForm() {
 
       <p className="mt-10 text-center text-sm text-ns-muted">
         Use the email and password from your approval email.
+      </p>
+      <p className="mt-4 text-center text-xs text-ns-muted">
+        Demo approved member:{" "}
+        <span className="text-ns-cream">{DEMO_MEMBER_EMAIL}</span> /{" "}
+        <span className="text-ns-cream">{DEMO_MEMBER_PASSWORD}</span>
       </p>
       <p className="mt-4 text-center text-sm text-ns-muted">
         No account?{" "}

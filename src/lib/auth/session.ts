@@ -9,13 +9,37 @@ export type SessionPayload = {
   name: string;
 };
 
+function bytesToBase64Url(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  const base64 =
+    typeof btoa !== "undefined"
+      ? btoa(binary)
+      : Buffer.from(bytes).toString("base64");
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function base64UrlToBytes(value: string): Uint8Array {
+  const padded =
+    value + "=".repeat((4 - (value.length % 4)) % 4);
+  const base64 = padded.replace(/-/g, "+").replace(/_/g, "/");
+  const binary =
+    typeof atob !== "undefined"
+      ? atob(base64)
+      : Buffer.from(base64, "base64").toString("binary");
+  const out = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+  return out;
+}
+
 export function encodeSession(session: SessionPayload): string {
-  return Buffer.from(JSON.stringify(session), "utf-8").toString("base64url");
+  const json = JSON.stringify(session);
+  return bytesToBase64Url(new TextEncoder().encode(json));
 }
 
 export function decodeSession(value: string): SessionPayload | null {
   try {
-    const json = Buffer.from(value, "base64url").toString("utf-8");
+    const json = new TextDecoder().decode(base64UrlToBytes(value));
     const parsed = JSON.parse(json) as SessionPayload;
     if (!parsed.userId || !parsed.role) return null;
     return parsed;

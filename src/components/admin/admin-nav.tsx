@@ -20,7 +20,8 @@ export function AdminNav() {
           key={link.href}
           href={link.href}
           className={`rounded-full px-4 py-1.5 text-xs uppercase tracking-widest ${
-            pathname === link.href
+            pathname === link.href ||
+            (link.href !== "/admin" && pathname.startsWith(`${link.href}/`))
               ? "bg-ns-gold text-ns-bg"
               : "border border-ns-border text-ns-muted hover:text-ns-cream"
           }`}

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { SESSION_COOKIE, decodeSession } from "@/lib/auth";
 import { getIntroductions } from "@/lib/client-store";
-import { DEMO_MEMBER, societyProfiles } from "@/lib/sample-data";
+import { getMemberGalleryProfile } from "@/lib/member-gallery-profiles";
+import { DEMO_MEMBER } from "@/lib/sample-data";
 import type { IntroductionRequest } from "@/lib/types";
 
 export default function IntroductionsPage() {
@@ -21,21 +22,25 @@ export default function IntroductionsPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-3xl px-5 md:px-8">
+    <div className="mx-auto max-w-3xl">
       <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Introductions</p>
-      <h1 className="font-heading mt-3 text-4xl text-white">Your requests</h1>
-      <p className="mt-4 text-sm text-white">
-        Status updates appear here once curators advance your request.
+      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Your requests</h1>
+      <p className="mt-4 text-sm text-ns-muted">
+        Interest you&apos;ve expressed appears here until mutual confirmation.
       </p>
 
       {items.length === 0 ? (
-        <p className="mt-12 rounded border border-ns-border bg-ns-surface p-8 text-sm text-white">
-          No introduction requests yet. Visit your gallery when you are ready.
+        <p className="mt-12 rounded border border-ns-border bg-ns-surface p-8 text-sm text-ns-cream">
+          No requests yet.{" "}
+          <a href="/member/gallery" className="text-ns-gold underline">
+            Open this week&apos;s batch
+          </a>
+          .
         </p>
       ) : (
         <ul className="mt-10 space-y-4">
           {items.map((item) => {
-            const profile = societyProfiles.find((p) => p.id === item.profileId);
+            const profile = getMemberGalleryProfile(item.profileId);
             return (
               <li
                 key={item.id}
