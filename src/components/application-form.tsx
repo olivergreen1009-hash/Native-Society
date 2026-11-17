@@ -62,8 +62,7 @@ export function ApplicationForm() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const form = e.currentTarget;
-    const data = new FormData(form);
+    const data = new FormData(e.currentTarget);
 
     const name = String(data.get("name") ?? "").trim();
     const email = String(data.get("email") ?? "").trim();
