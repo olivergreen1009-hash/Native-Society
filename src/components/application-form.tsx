@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState, type ReactNode } from "react";
 import {
   CURRENT_AREAS,
@@ -14,12 +15,8 @@ import {
   SCHOOL_SUGGESTIONS,
   SEEKING_GENDER_OPTIONS,
 } from "@/lib/application-options";
-import {
-  admissionCohort,
-  ageFromDateOfBirth,
-  buildPoolKey,
-} from "@/lib/application-validation";
-import { addInquiry } from "@/lib/client-store";
+import { admissionCohort, ageFromDateOfBirth } from "@/lib/application-validation";
+import type { ApplicationSubmitBody } from "@/lib/application-api";
 import type { HighSchoolRecord, OptionalSchoolRecord } from "@/lib/types";
 
 const inputClass =
@@ -34,8 +31,9 @@ const emptyHighSchool = (): HighSchoolRecord => ({
 });
 
 export function ApplicationForm() {
-  const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
   const [seeking, setSeeking] = useState<string[]>([]);
@@ -60,11 +58,11 @@ export function ApplicationForm() {
     setHighSchool((prev) => ({ ...prev, ...patch }));
   };
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    const form = e.currentTarget;
-    const data = new FormData(form);
+    setLoading(true);
+    const data = new FormData(e.currentTarget);
 
     const name = String(data.get("name") ?? "").trim();
     const email = String(data.get("email") ?? "").trim();
@@ -73,10 +71,12 @@ export function ApplicationForm() {
 
     if (!name || !email || !dateOfBirth || ageAtSubmission === null) {
       setError("Please complete all required fields.");
+      setLoading(false);
       return;
     }
     if (ageAtSubmission < 18) {
       setError("You must be at least 18 to apply.");
+      setLoading(false);
       return;
     }
 
@@ -93,12 +93,14 @@ export function ApplicationForm() {
       !hs.familyHomeDuringHighSchool
     ) {
       setError("Complete the required high school section.");
+      setLoading(false);
       return;
     }
 
     const nycYears = String(data.get("nycYearsBefore18") ?? "");
     if (!nycYears) {
       setError("Select how long you lived in New York City before turning 18.");
+      setLoading(false);
       return;
     }
 
@@ -111,6 +113,7 @@ export function ApplicationForm() {
       seekingAgeMax < seekingAgeMin
     ) {
       setError("Enter a valid age range for who you want to meet.");
+      setLoading(false);
       return;
     }
 
@@ -118,11 +121,13 @@ export function ApplicationForm() {
     const relationshipIntention = String(data.get("relationshipIntention") ?? "");
     if (!locationPreference || !relationshipIntention) {
       setError("Select location preference and relationship intention.");
+      setLoading(false);
       return;
     }
 
     if (!gender || seeking.length === 0) {
       setError("Select your gender and who you want to meet.");
+      setLoading(false);
       return;
     }
 
@@ -134,6 +139,7 @@ export function ApplicationForm() {
     };
     if (!Object.values(consents).every(Boolean)) {
       setError("Please accept all required confirmations.");
+      setLoading(false);
       return;
     }
 
@@ -143,6 +149,7 @@ export function ApplicationForm() {
         : undefined;
     if (gender === "self_describe" && !genderSelfDescribe) {
       setError("Please describe how you identify.");
+      setLoading(false);
       return;
     }
 
@@ -164,13 +171,11 @@ export function ApplicationForm() {
       };
     }
 
-    const base = {
+    const payload: ApplicationSubmitBody = {
       name,
       email,
       emailVerified: false,
       dateOfBirth,
-      ageAtSubmission,
-      admissionCohort: admissionCohort(ageAtSubmission),
       currentArea: String(data.get("currentArea") ?? ""),
       neighborhood: String(data.get("neighborhood") ?? "").trim() || undefined,
       gender,
@@ -190,53 +195,35 @@ export function ApplicationForm() {
       consents,
     };
 
-    addInquiry({
-      ...base,
-      poolKey: buildPoolKey({
-        gender: base.gender,
-        seekingGenders: base.seekingGenders,
-        ageAtSubmission: base.ageAtSubmission,
-        seekingAgeMin: base.seekingAgeMin,
-        seekingAgeMax: base.seekingAgeMax,
-        locationPreference: base.locationPreference,
-        currentArea: base.currentArea,
-      }),
-    });
-
-    setSubmitted(true);
-    form.reset();
-    setHighSchool(emptyHighSchool());
-    setShowElemMiddle(false);
-    setShowCollege(false);
-    setElemMiddle({ schoolName: "", graduationYear: "" });
-    setCollege({ schoolName: "", graduationYear: "" });
-    setDob("");
-    setGender("");
-    setSeeking([]);
+    try {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(json.error ?? "Unable to submit application.");
+        setLoading(false);
+        return;
+      }
+      const json = (await res.json()) as { applicationId: string };
+      router.push(`/application/status?id=${encodeURIComponent(json.applicationId)}`);
+    } catch {
+      setError("Unable to submit application. Please try again.");
+      setLoading(false);
+    }
   };
 
-  if (submitted) {
-    return (
-      <div className="mt-10 space-y-4 border border-ns-gold/50 bg-ns-elevated px-5 py-8 sm:px-8">
-        <p className="font-heading text-xl text-ns-cream">Application received.</p>
-        <p className="text-base leading-relaxed text-ns-cream">
-          We review every application and respond within two weeks. Approval does not start
-          billing. We only activate paid membership once there&apos;s a usable pool for your
-          preferences.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={onSubmit} className="mt-10 space-y-8">
+    <form onSubmit={onSubmit} className="mt-6 space-y-6 md:mt-10 md:space-y-8">
       {error && (
         <p className="text-base text-red-400" role="alert">
           {error}
         </p>
       )}
 
-      <fieldset className="space-y-7 border-none p-0">
+      <fieldset className="space-y-5 border-none p-0 md:space-y-7">
         <legend className="font-heading text-lg text-ns-cream">About you</legend>
         <Field label="Full name" name="name" required autoComplete="name" />
         <div>
@@ -289,7 +276,7 @@ export function ApplicationForm() {
         />
       </fieldset>
 
-      <fieldset className="space-y-7 border-t border-ns-border pt-8">
+      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
         <legend className="font-heading text-lg text-ns-cream">School history</legend>
         <SchoolNameInput
           label="High school name"
@@ -395,7 +382,7 @@ export function ApplicationForm() {
         )}
       </fieldset>
 
-      <fieldset className="space-y-7 border-t border-ns-border pt-8">
+      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
         <legend className="font-heading text-lg text-ns-cream">New York roots</legend>
         <Select
           label="How long did you live in New York City before turning 18?"
@@ -405,7 +392,7 @@ export function ApplicationForm() {
         />
       </fieldset>
 
-      <fieldset className="space-y-7 border-t border-ns-border pt-8">
+      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
         <legend className="font-heading text-lg text-ns-cream">Identity & preferences</legend>
         <h3 className={labelClass} id="gender-label">
           Gender
@@ -485,13 +472,13 @@ export function ApplicationForm() {
         <TextArea label="Note (optional)" name="optionalNote" rows={3} />
       </fieldset>
 
-      <fieldset className="space-y-7 border-t border-ns-border pt-8">
+      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
         <legend className="font-heading text-lg text-ns-cream">Referral</legend>
         <Select label="How you heard about us" name="heardAbout" required options={HEARD_ABOUT_OPTIONS} />
         <Field label="Referrer name (optional)" name="referrerName" />
       </fieldset>
 
-      <fieldset className="space-y-4 border-t border-ns-border pt-8">
+      <fieldset className="space-y-4 border-t border-ns-border pt-6 md:pt-8">
         <legend className="font-heading text-lg text-ns-cream">Required confirmations</legend>
         <Consent name="consent18" label="I am 18 years of age or older." />
         <Consent
@@ -522,10 +509,10 @@ export function ApplicationForm() {
 
       <button
         type="submit"
-        disabled={under18}
+        disabled={under18 || loading}
         className="club-btn-apply w-full disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
       >
-        Apply
+        {loading ? "Submitting…" : "Apply"}
       </button>
     </form>
   );
