@@ -42,12 +42,14 @@ export function LandingExampleProfiles() {
                     Example
                   </span>
                 </div>
-                <div className="px-2.5 py-2 md:px-3 md:py-3">
+                <div className="min-h-[4.75rem] px-2.5 py-2 md:min-h-0 md:px-3 md:py-3">
                   <p className="font-heading text-sm text-ns-cream md:text-base">
                     {profile.firstName} · {profile.age}
                   </p>
-                  <p className="text-[11px] text-ns-muted md:text-xs">{profile.neighborhood}</p>
-                  <p className="mt-0.5 text-[11px] text-ns-gold md:mt-1 md:text-xs">
+                  <p className="text-[11px] leading-snug text-ns-muted md:text-xs">
+                    {profile.neighborhood}
+                  </p>
+                  <p className="mt-0.5 text-balance text-[11px] leading-snug text-ns-gold [overflow-wrap:anywhere] md:mt-1 md:text-xs">
                     {profile.schoolLine}
                   </p>
                 </div>

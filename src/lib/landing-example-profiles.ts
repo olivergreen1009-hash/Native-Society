@@ -49,7 +49,7 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     prompt:
       "I'm happiest at a long dinner with good conversation and no phones on the table.",
     lookingFor: "Long-term partnership",
-    // AI illustrative — linen on rooftop terrace, golden hour
+    // AI illustrative — buttoned linen, rooftop terrace, golden hour
     imageUrl: "/examples/example-james.jpg",
   },
   {
@@ -76,7 +76,7 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     interests: ["Cycling", "cooking", "jazz", "the occasional round of golf"],
     prompt: "I make a very good risotto and will absolutely cook for you.",
     lookingFor: "Long-term partnership",
-    // AI illustrative — burgundy sweater, jazz club amber light
+    // AI illustrative — East Asian, vest + oxford, Brooklyn promenade daylight
     imageUrl: "/examples/example-henry.jpg",
   },
   {
