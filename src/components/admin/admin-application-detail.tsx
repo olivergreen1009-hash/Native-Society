@@ -78,17 +78,19 @@ export function AdminApplicationDetail({ id }: { id: string }) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_16rem]">
         <div className="space-y-8">
-          <Section title="Bio">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-ns-cream">
-              {raw?.shortBio?.trim() || "—"}
-            </p>
-          </Section>
+          {raw?.shortBio?.trim() ? (
+            <Section title="Bio">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-ns-cream">
+                {raw.shortBio.trim()}
+              </p>
+            </Section>
+          ) : null}
 
-          <Section title="Charity & boards">
-            <p className="text-sm text-ns-cream">
-              {raw?.charityBoardInvolvement?.trim() || "—"}
-            </p>
-          </Section>
+          {raw?.charityBoardInvolvement?.trim() ? (
+            <Section title="Charity & boards">
+              <p className="text-sm text-ns-cream">{raw.charityBoardInvolvement.trim()}</p>
+            </Section>
+          ) : null}
 
           <Section title="Preferences">
             {raw ? <PreferencesBlock raw={raw} /> : <p className="text-sm text-ns-muted">—</p>}
@@ -196,15 +198,19 @@ function StructuredFields({
     <dl className="grid gap-3 text-sm sm:grid-cols-2">
       <Detail label="Full name (row)" value={row.full_name} />
       <Detail label="Email (row)" value={row.email} />
-      <Detail label="Occupation" value={raw.occupation || "—"} />
-      <Detail
-        label="Summer"
-        value={
-          raw.summerDestination === "Other" && raw.summerOther
-            ? `Other — ${raw.summerOther}`
-            : raw.summerDestination || "—"
-        }
-      />
+      {raw.occupation?.trim() ? (
+        <Detail label="Occupation" value={raw.occupation.trim()} />
+      ) : null}
+      {raw.summerDestination ? (
+        <Detail
+          label="Summer"
+          value={
+            raw.summerDestination === "Other" && raw.summerOther
+              ? `Other — ${raw.summerOther}`
+              : raw.summerDestination
+          }
+        />
+      ) : null}
       <Detail label="High school" value={schoolLine} span />
       {raw.elementaryMiddle?.schoolName && (
         <Detail

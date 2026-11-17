@@ -23,6 +23,23 @@ body {
   font-family: var(--font-heading), Georgia, serif;
 }
 
+@layer base {
+  input[type="radio"].ns-radio {
+    appearance: none;
+    height: 1.125rem;
+    width: 1.125rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    border: 2px solid var(--color-ns-gold);
+    background-color: transparent;
+  }
+
+  input[type="radio"].ns-radio:checked {
+    background-color: var(--color-ns-gold);
+    box-shadow: inset 0 0 0 3px var(--color-ns-bg);
+  }
+}
+
 @layer utilities {
   .club-btn-apply {
     @apply font-heading inline-flex min-h-11 items-center justify-center border border-ns-gold bg-ns-gold/10 px-6 py-3 text-base text-ns-cream transition hover:bg-ns-gold/20;

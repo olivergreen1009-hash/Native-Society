@@ -123,11 +123,11 @@ export interface InquirySubmission {
   locationPreference: string;
   relationshipIntention: string;
   optionalNote?: string;
-  occupation: string;
-  summerDestination: string;
+  occupation?: string;
+  summerDestination?: string;
   summerOther?: string;
   charityBoardInvolvement?: string;
-  shortBio: string;
+  shortBio?: string;
   profilePhoto?: ApplicationProfilePhoto;
   highSchool: HighSchoolRecord;
   elementaryMiddle?: OptionalSchoolRecord;

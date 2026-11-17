@@ -40,7 +40,7 @@ export function LandingPage() {
       {/* Hero — tighter vertical rhythm on mobile */}
       <section className="mx-auto max-w-6xl px-5 pb-10 pt-10 md:px-8 md:pb-20 md:pt-24">
         <p className="text-xs uppercase tracking-[0.35em] text-ns-gold">
-          Invitation only · NYC
+          Application only · New York
         </p>
         <h1 className="font-heading mt-3 max-w-3xl text-[1.75rem] leading-tight md:mt-6 md:text-6xl">
           Dating for those who grew up in the city—and in its schools.

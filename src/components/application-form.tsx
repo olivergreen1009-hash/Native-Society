@@ -7,53 +7,26 @@ import {
   ADMISSION_AGE_MAX,
   ADMISSION_AGE_MIN,
   CURRENT_AREAS,
+  DOB_MONTHS,
   FAMILY_HOME_DURING_HIGH_SCHOOL,
   GENDER_OPTIONS,
   HEARD_ABOUT_OPTIONS,
   HIGH_SCHOOL_TYPES,
+  highSchoolGraduationYears,
   LOCATION_PREFERENCES,
   NYC_YEARS_BEFORE_18,
   RELATIONSHIP_INTENTIONS,
   SCHOOL_SUGGESTIONS,
   SEEKING_GENDER_OPTIONS,
-  SUMMER_DESTINATIONS,
 } from "@/lib/application-options";
 import { admissionCohort, ageFromDateOfBirth } from "@/lib/application-validation";
 import type { ApplicationSubmitBody } from "@/lib/application-api";
-import type {
-  ApplicationProfilePhoto,
-  HighSchoolRecord,
-  OptionalSchoolRecord,
-} from "@/lib/types";
+import type { HighSchoolRecord } from "@/lib/types";
 
-const MAX_PROFILE_PHOTO_BYTES = 1.5 * 1024 * 1024;
-const PROFILE_PHOTO_ACCEPT = "image/jpeg,image/png,image/webp";
-
-async function fileToProfilePhoto(file: File): Promise<ApplicationProfilePhoto> {
-  const dataBase64 = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== "string") {
-        reject(new Error("Could not read file."));
-        return;
-      }
-      const comma = result.indexOf(",");
-      resolve(comma >= 0 ? result.slice(comma + 1) : result);
-    };
-    reader.onerror = () => reject(reader.error ?? new Error("Could not read file."));
-    reader.readAsDataURL(file);
-  });
-  return {
-    fileName: file.name,
-    mimeType: file.type,
-    sizeBytes: file.size,
-    dataBase64,
-  };
-}
+const STEPS = ["About you", "NYC roots & school", "Preferences & submit"] as const;
 
 const inputClass =
-  "mt-3 w-full border border-ns-border bg-ns-elevated px-4 py-3.5 text-base text-ns-cream outline-none transition focus:border-ns-gold";
+  "mt-3 w-full max-w-full border border-ns-border bg-ns-elevated px-4 py-3.5 text-base text-ns-cream outline-none transition focus:border-ns-gold";
 const labelClass = "font-heading text-base text-ns-gold";
 
 const emptyHighSchool = (): HighSchoolRecord => ({
@@ -63,27 +36,45 @@ const emptyHighSchool = (): HighSchoolRecord => ({
   familyHomeDuringHighSchool: "",
 });
 
+function composeDob(month: string, day: string, year: string): string {
+  if (!month || !day || !year) return "";
+  const mm = month.padStart(2, "0");
+  const dd = day.padStart(2, "0");
+  return `${year}-${mm}-${dd}`;
+}
+
+function daysInMonth(month: string, year: string): number {
+  const m = Number(month);
+  const y = Number(year);
+  if (!m || !y) return 31;
+  return new Date(y, m, 0).getDate();
+}
+
 export function ApplicationForm() {
   const router = useRouter();
+  const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [dob, setDob] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobYear, setDobYear] = useState("");
   const [gender, setGender] = useState("");
   const [seeking, setSeeking] = useState<string[]>([]);
   const [highSchool, setHighSchool] = useState<HighSchoolRecord>(emptyHighSchool);
-  const [showElemMiddle, setShowElemMiddle] = useState(false);
-  const [showCollege, setShowCollege] = useState(false);
-  const [elemMiddle, setElemMiddle] = useState({ schoolName: "", graduationYear: "" });
-  const [college, setCollege] = useState({ schoolName: "", graduationYear: "" });
-  const [summerDestination, setSummerDestination] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState<ApplicationProfilePhoto | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoError, setPhotoError] = useState("");
 
-  const age = useMemo(() => (dob ? ageFromDateOfBirth(dob) : null), [dob]);
+  const dateOfBirth = composeDob(dobMonth, dobDay, dobYear);
+  const age = useMemo(
+    () => (dateOfBirth ? ageFromDateOfBirth(dateOfBirth) : null),
+    [dateOfBirth],
+  );
   const cohort = age !== null ? admissionCohort(age) : null;
   const under18 = age !== null && age < 18;
   const outsideCohort = cohort === "outside_cohort";
+  const maxDay = daysInMonth(dobMonth, dobYear);
+  const dayOptions = Array.from({ length: maxDay }, (_, i) => String(i + 1));
+  const yearOptions = Array.from({ length: 80 }, (_, i) =>
+    String(new Date().getFullYear() - 18 - i),
+  );
 
   const toggleSeeking = (value: string) => {
     setSeeking((prev) =>
@@ -95,54 +86,64 @@ export function ApplicationForm() {
     setHighSchool((prev) => ({ ...prev, ...patch }));
   };
 
+  const validateStep = (data: FormData, targetStep: number): boolean => {
+    if (targetStep >= 1) {
+      const name = String(data.get("name") ?? "").trim();
+      const email = String(data.get("email") ?? "").trim();
+      if (!name || !email || !dateOfBirth || age === null) {
+        setError("Complete name, email, and date of birth.");
+        return false;
+      }
+      if (age < 18) {
+        setError("You must be at least 18 to apply.");
+        return false;
+      }
+      if (!String(data.get("currentArea") ?? "")) {
+        setError("Select your current area.");
+        return false;
+      }
+    }
+    if (targetStep >= 2) {
+      const hs = highSchool;
+      if (
+        !hs.schoolName.trim() ||
+        !hs.schoolType ||
+        !hs.graduationYear ||
+        !hs.familyHomeDuringHighSchool
+      ) {
+        setError("Complete the required high school section.");
+        return false;
+      }
+      if (!String(data.get("nycYearsBefore18") ?? "")) {
+        setError("Select how long you lived in NYC before turning 18.");
+        return false;
+      }
+    }
+    setError("");
+    return true;
+  };
+
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
+    if (step < STEPS.length - 1) {
+      if (validateStep(data, step + 1)) setStep((s) => s + 1);
+      return;
+    }
+
+    if (!validateStep(data, 2)) return;
+
     setError("");
     setLoading(true);
-    const data = new FormData(e.currentTarget);
 
-    const name = String(data.get("name") ?? "").trim();
-    const email = String(data.get("email") ?? "").trim();
-    const dateOfBirth = String(data.get("dateOfBirth") ?? "").trim();
-    const ageAtSubmission = ageFromDateOfBirth(dateOfBirth);
-
-    if (!name || !email || !dateOfBirth || ageAtSubmission === null) {
-      setError("Please complete all required fields.");
-      setLoading(false);
-      return;
-    }
-    if (ageAtSubmission < 18) {
-      setError("You must be at least 18 to apply.");
-      setLoading(false);
-      return;
-    }
-
-    const hs: HighSchoolRecord = {
-      schoolName: highSchool.schoolName.trim(),
-      schoolType: highSchool.schoolType,
-      graduationYear: highSchool.graduationYear.trim(),
-      familyHomeDuringHighSchool: highSchool.familyHomeDuringHighSchool,
-    };
-    if (
-      !hs.schoolName ||
-      !hs.schoolType ||
-      !hs.graduationYear ||
-      !hs.familyHomeDuringHighSchool
-    ) {
-      setError("Complete the required high school section.");
-      setLoading(false);
-      return;
-    }
-
-    const nycYears = String(data.get("nycYearsBefore18") ?? "");
-    if (!nycYears) {
-      setError("Select how long you lived in New York City before turning 18.");
-      setLoading(false);
-      return;
-    }
-
+    const ageAtSubmission = ageFromDateOfBirth(dateOfBirth)!;
     const seekingAgeMin = Number(data.get("seekingAgeMin"));
     const seekingAgeMax = Number(data.get("seekingAgeMax"));
+    const locationPreference = String(data.get("locationPreference") ?? "");
+    const relationshipIntention = String(data.get("relationshipIntention") ?? "");
+
     if (
       Number.isNaN(seekingAgeMin) ||
       Number.isNaN(seekingAgeMax) ||
@@ -153,15 +154,11 @@ export function ApplicationForm() {
       setLoading(false);
       return;
     }
-
-    const locationPreference = String(data.get("locationPreference") ?? "");
-    const relationshipIntention = String(data.get("relationshipIntention") ?? "");
     if (!locationPreference || !relationshipIntention) {
       setError("Select location preference and relationship intention.");
       setLoading(false);
       return;
     }
-
     if (!gender || seeking.length === 0) {
       setError("Select your gender and who you want to meet.");
       setLoading(false);
@@ -190,59 +187,17 @@ export function ApplicationForm() {
       return;
     }
 
-    let elementaryMiddle: OptionalSchoolRecord | undefined;
-    if (showElemMiddle && elemMiddle.schoolName.trim()) {
-      elementaryMiddle = {
-        level: "elementary_middle",
-        schoolName: elemMiddle.schoolName.trim(),
-        graduationYear: elemMiddle.graduationYear.trim() || undefined,
-      };
-    }
-
-    let collegeRecord: OptionalSchoolRecord | undefined;
-    if (showCollege && college.schoolName.trim()) {
-      collegeRecord = {
-        level: "college",
-        schoolName: college.schoolName.trim(),
-        graduationYear: college.graduationYear.trim() || undefined,
-      };
+    if (!String(data.get("heardAbout") ?? "")) {
+      setError("Tell us how you heard about Native Society.");
+      setLoading(false);
+      return;
     }
 
     const occupation = String(data.get("occupation") ?? "").trim();
-    const summerOther = String(data.get("summerOther") ?? "").trim();
-    const charityBoardInvolvement =
-      String(data.get("charityBoardInvolvement") ?? "").trim() || undefined;
-    const shortBio = String(data.get("shortBio") ?? "").trim();
-
-    if (!occupation) {
-      setError("Enter your occupation or industry.");
-      setLoading(false);
-      return;
-    }
-    if (!summerDestination) {
-      setError("Select where you usually summer.");
-      setLoading(false);
-      return;
-    }
-    if (summerDestination === "Other" && !summerOther) {
-      setError("Describe where you summer when selecting Other.");
-      setLoading(false);
-      return;
-    }
-    if (!shortBio || shortBio.length < 40) {
-      setError("Add a short bio or what you are looking for (at least 40 characters).");
-      setLoading(false);
-      return;
-    }
-    if (photoError) {
-      setError(photoError);
-      setLoading(false);
-      return;
-    }
 
     const payload: ApplicationSubmitBody = {
-      name,
-      email,
+      name: String(data.get("name") ?? "").trim(),
+      email: String(data.get("email") ?? "").trim(),
       emailVerified: false,
       dateOfBirth,
       currentArea: String(data.get("currentArea") ?? ""),
@@ -254,20 +209,17 @@ export function ApplicationForm() {
       seekingAgeMax,
       locationPreference,
       relationshipIntention,
-      optionalNote: String(data.get("optionalNote") ?? "").trim() || undefined,
-      highSchool: hs,
-      elementaryMiddle,
-      college: collegeRecord,
-      nycYearsBefore18: nycYears,
+      occupation: occupation || undefined,
+      highSchool: {
+        schoolName: highSchool.schoolName.trim(),
+        schoolType: highSchool.schoolType,
+        graduationYear: highSchool.graduationYear,
+        familyHomeDuringHighSchool: highSchool.familyHomeDuringHighSchool,
+      },
+      nycYearsBefore18: String(data.get("nycYearsBefore18") ?? ""),
       heardAbout: String(data.get("heardAbout") ?? ""),
       referrerName: String(data.get("referrerName") ?? "").trim() || undefined,
       consents,
-      occupation,
-      summerDestination,
-      summerOther: summerDestination === "Other" ? summerOther : undefined,
-      charityBoardInvolvement,
-      shortBio,
-      profilePhoto: profilePhoto ?? undefined,
     };
 
     try {
@@ -279,17 +231,11 @@ export function ApplicationForm() {
       const json = (await res.json()) as {
         error?: string;
         details?: string;
-        ok?: boolean;
         applicationId?: string;
       };
       if (!res.ok) {
         const detail = json.details ? ` (${json.details})` : "";
-        setError(
-          json.error
-            ? `${json.error}${detail}`
-            : "Unable to submit application.",
-        );
-        console.error("[applications] Submit failed:", res.status, json);
+        setError(json.error ? `${json.error}${detail}` : "Unable to submit application.");
         setLoading(false);
         return;
       }
@@ -308,377 +254,419 @@ export function ApplicationForm() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="mt-6 space-y-6 md:mt-10 md:space-y-8">
+    <form onSubmit={onSubmit} className="mt-6 space-y-6 md:mt-8">
+      <div aria-label="Application progress">
+        <div className="flex gap-2">
+          {STEPS.map((label, i) => (
+            <div
+              key={label}
+              className={`h-1 flex-1 rounded-full ${i <= step ? "bg-ns-gold" : "bg-ns-border"}`}
+            />
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-ns-muted">
+          Step {step + 1} of {STEPS.length} — {STEPS[step]}
+        </p>
+      </div>
+
       {error && (
         <p className="text-base text-red-400" role="alert">
           {error}
         </p>
       )}
 
-      <fieldset className="space-y-5 border-none p-0 md:space-y-7">
-        <legend className="font-heading text-lg text-ns-cream">About you</legend>
-        <Field label="Full name" name="name" required autoComplete="name" />
-        <div>
-          <label className={labelClass} htmlFor="email">
-            Email
-          </label>
-          <p className="mt-1 text-sm text-ns-muted">
-            Verified before activation—we&apos;ll send a confirmation link if approved.
-          </p>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass} htmlFor="dateOfBirth">
-            Date of birth
-          </label>
-          <input
-            id="dateOfBirth"
-            name="dateOfBirth"
-            type="date"
-            required
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            className={inputClass}
-          />
-          {under18 && (
-            <p className="mt-2 text-sm text-red-400">Must be 18 or older to apply.</p>
-          )}
-          {age !== null && age >= 18 && outsideCohort && (
-            <p className="mt-2 text-sm text-ns-gold">
-              Outside current admission window (ages {ADMISSION_AGE_MIN}–{ADMISSION_AGE_MAX}).
-              You may still apply; review is case by case.
-            </p>
-          )}
-          {age !== null && cohort === "21-50" && (
-            <p className="mt-2 text-sm text-ns-muted">
-              Within current admission ages {ADMISSION_AGE_MIN}–{ADMISSION_AGE_MAX}.
-            </p>
-          )}
-        </div>
-        <Select label="Current area" name="currentArea" required options={CURRENT_AREAS} />
-        <Field
-          label="Neighborhood (optional)"
-          name="neighborhood"
-          placeholder="e.g. West Village"
-        />
-      </fieldset>
+      <input type="hidden" name="dateOfBirth" value={dateOfBirth} />
 
-      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
-        <legend className="font-heading text-lg text-ns-cream">School history</legend>
-        <SchoolNameInput
-          label="High school name"
-          value={highSchool.schoolName}
-          onChange={(schoolName) => patchHighSchool({ schoolName })}
-          required
-        />
-        <div>
-          <label className={labelClass} htmlFor="hs-type">
-            High school type
-          </label>
-          <select
-            id="hs-type"
-            value={highSchool.schoolType}
-            onChange={(e) => patchHighSchool({ schoolType: e.target.value })}
-            required
-            className={inputClass}
-          >
-            <option value="" disabled>
-              Select…
-            </option>
-            {HIGH_SCHOOL_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          {highSchool.schoolType === "Boarding" && (
-            <p className="mt-2 text-sm text-ns-muted">
-              If you boarded, tell us where your family home was.
-            </p>
-          )}
-        </div>
-        <Field
-          label="High school graduation year"
-          name="hsGradYear"
-          type="number"
-          required
-          placeholder="e.g. 2010"
-          value={highSchool.graduationYear}
-          onChange={(graduationYear) => patchHighSchool({ graduationYear })}
-        />
-        <StatefulSelect
-          label="Where did your family live while you were in high school?"
-          value={highSchool.familyHomeDuringHighSchool}
-          onChange={(familyHomeDuringHighSchool) =>
-            patchHighSchool({ familyHomeDuringHighSchool })
-          }
-          options={FAMILY_HOME_DURING_HIGH_SCHOOL}
-          required
-        />
-
-        {!showElemMiddle ? (
-          <button
-            type="button"
-            onClick={() => setShowElemMiddle(true)}
-            className="text-base text-ns-gold hover:text-ns-cream"
-          >
-            + Add elementary / middle school (optional)
-          </button>
-        ) : (
-          <div className="space-y-4 border border-ns-border bg-ns-bg p-4">
-            <p className="font-heading text-ns-cream">Elementary / middle (optional)</p>
-            <SchoolNameInput
-              label="School name"
-              value={elemMiddle.schoolName}
-              onChange={(schoolName) => setElemMiddle((s) => ({ ...s, schoolName }))}
-            />
-            <Field
-              label="Graduation year (optional)"
-              name="emGrad"
-              placeholder="e.g. 2004"
-              value={elemMiddle.graduationYear}
-              onChange={(graduationYear) => setElemMiddle((s) => ({ ...s, graduationYear }))}
-            />
-          </div>
-        )}
-
-        {!showCollege ? (
-          <button
-            type="button"
-            onClick={() => setShowCollege(true)}
-            className="text-base text-ns-gold hover:text-ns-cream"
-          >
-            + Add college (optional)
-          </button>
-        ) : (
-          <div className="space-y-4 border border-ns-border bg-ns-bg p-4">
-            <p className="font-heading text-ns-cream">College (optional)</p>
-            <SchoolNameInput
-              label="College name"
-              value={college.schoolName}
-              onChange={(schoolName) => setCollege((s) => ({ ...s, schoolName }))}
-            />
-            <Field
-              label="Graduation year (optional)"
-              name="collegeGrad"
-              placeholder="e.g. 2014"
-              value={college.graduationYear}
-              onChange={(graduationYear) => setCollege((s) => ({ ...s, graduationYear }))}
-            />
-          </div>
-        )}
-      </fieldset>
-
-      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
-        <legend className="font-heading text-lg text-ns-cream">Life & presentation</legend>
-        <p className="text-sm leading-relaxed text-ns-muted">
-          Selective detail for admissions review—kept private until membership.
-        </p>
-        <Field
-          label="Occupation / industry"
-          name="occupation"
-          required
-          autoComplete="organization-title"
-          placeholder="e.g. Private equity · Art advisory"
-        />
-        <StatefulSelect
-          label="Where do you summer?"
-          value={summerDestination}
-          onChange={setSummerDestination}
-          options={SUMMER_DESTINATIONS}
-          required
-        />
-        {summerDestination === "Other" && (
-          <Field
-            label="Where you summer"
-            name="summerOther"
-            required
-            placeholder="e.g. Maine coast, Aspen"
-          />
-        )}
-        <Field
-          label="Charity or board involvement (optional)"
-          name="charityBoardInvolvement"
-          placeholder="e.g. Museum board, youth charity"
-        />
-        <TextArea
-          label="Short bio · what you’re looking for"
-          name="shortBio"
-          required
-          rows={4}
-          placeholder="A few sentences on your life in New York and what kind of introduction you want here."
-          hint="At least 40 characters. Reviewed by admissions only."
-        />
-        <ProfilePhotoUpload
-          previewUrl={photoPreview}
-          error={photoError}
-          onClear={() => {
-            if (photoPreview) URL.revokeObjectURL(photoPreview);
-            setProfilePhoto(null);
-            setPhotoPreview(null);
-            setPhotoError("");
-          }}
-          onFile={async (file) => {
-            setPhotoError("");
-            if (!PROFILE_PHOTO_ACCEPT.split(",").includes(file.type)) {
-              setPhotoError("Use a JPEG, PNG, or WebP image.");
-              return;
-            }
-            if (file.size > MAX_PROFILE_PHOTO_BYTES) {
-              setPhotoError("Photo must be 1.5 MB or smaller.");
-              return;
-            }
-            try {
-              const photo = await fileToProfilePhoto(file);
-              setProfilePhoto(photo);
-              setPhotoPreview(URL.createObjectURL(file));
-            } catch {
-              setPhotoError("Could not read that file. Try another image.");
-            }
-          }}
-        />
-      </fieldset>
-
-      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
-        <legend className="font-heading text-lg text-ns-cream">New York roots</legend>
-        <Select
-          label="How long did you live in New York City before turning 18?"
-          name="nycYearsBefore18"
-          required
-          options={NYC_YEARS_BEFORE_18}
-        />
-      </fieldset>
-
-      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
-        <legend className="font-heading text-lg text-ns-cream">Identity & preferences</legend>
-        <h3 className={labelClass} id="gender-label">
-          Gender
-        </h3>
-        <div className="mt-3 space-y-2" role="radiogroup" aria-labelledby="gender-label">
-          {GENDER_OPTIONS.map((opt) => (
-            <label
-              key={opt.value}
-              className="flex cursor-pointer items-center gap-3 text-base text-ns-cream"
-            >
-              <input
-                type="radio"
-                name="genderRadio"
-                value={opt.value}
-                checked={gender === opt.value}
-                onChange={() => setGender(opt.value)}
-                className="accent-ns-gold"
-              />
-              {opt.label}
+      {step === 0 && (
+        <fieldset className="space-y-5 border-none p-0 md:space-y-6">
+          <legend className="font-heading text-lg text-ns-cream">About you</legend>
+          <Field label="Full name" name="name" required autoComplete="name" />
+          <div>
+            <label className={labelClass} htmlFor="email">
+              Email
             </label>
-          ))}
-        </div>
-        {gender === "self_describe" && (
-          <Field label="How you identify" name="genderSelfDescribe" required />
-        )}
-
-        <div>
-          <p className={labelClass} id="seeking-label">
-            Who you want to meet
-          </p>
-          <div className="mt-3 flex flex-col gap-2" aria-labelledby="seeking-label">
-            {SEEKING_GENDER_OPTIONS.map((opt) => (
-              <label
-                key={opt.value}
-                className="flex cursor-pointer items-center gap-3 text-base text-ns-cream"
-              >
-                <input
-                  type="checkbox"
-                  checked={seeking.includes(opt.value)}
-                  onChange={() => toggleSeeking(opt.value)}
-                  className="accent-ns-gold"
-                />
-                {opt.label}
-              </label>
-            ))}
+            <p className="mt-1 text-sm text-ns-muted">
+              Verified before activation—we&apos;ll send a confirmation link if approved.
+            </p>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              className={inputClass}
+            />
           </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
+          <DobFields
+            labelClass={labelClass}
+            inputClass={inputClass}
+            dobMonth={dobMonth}
+            dobDay={dobDay}
+            dobYear={dobYear}
+            setDobMonth={setDobMonth}
+            setDobDay={setDobDay}
+            setDobYear={setDobYear}
+            dayOptions={dayOptions}
+            yearOptions={yearOptions}
+            under18={under18}
+            outsideCohort={outsideCohort}
+            age={age}
+          />
+          <Select label="Current area" name="currentArea" required options={CURRENT_AREAS} />
           <Field
-            label="Their age — minimum"
-            name="seekingAgeMin"
-            type="number"
-            required
-            placeholder={String(ADMISSION_AGE_MIN)}
+            label="Neighborhood (optional)"
+            name="neighborhood"
+            placeholder="e.g. West Village"
           />
           <Field
-            label="Their age — maximum"
-            name="seekingAgeMax"
-            type="number"
-            required
-            placeholder={String(ADMISSION_AGE_MAX)}
+            label="Occupation / industry (optional)"
+            name="occupation"
+            placeholder="e.g. Finance · Design"
           />
-        </div>
-        <Select
-          label="Location preference"
-          name="locationPreference"
-          required
-          options={LOCATION_PREFERENCES}
-        />
-        <Select
-          label="Relationship intention"
-          name="relationshipIntention"
-          required
-          options={RELATIONSHIP_INTENTIONS}
-        />
-        <TextArea label="Note (optional)" name="optionalNote" rows={3} />
-      </fieldset>
+        </fieldset>
+      )}
 
-      <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-7 md:pt-8">
-        <legend className="font-heading text-lg text-ns-cream">Referral</legend>
-        <Select label="How you heard about us" name="heardAbout" required options={HEARD_ABOUT_OPTIONS} />
-        <Field label="Referrer name (optional)" name="referrerName" />
-      </fieldset>
+      {step === 1 && (
+        <fieldset className="space-y-5 border-none p-0 md:space-y-6">
+          <legend className="font-heading text-lg text-ns-cream">NYC roots & school</legend>
+          <Select
+            label="How long did you live in New York City before turning 18?"
+            name="nycYearsBefore18"
+            required
+            options={NYC_YEARS_BEFORE_18}
+          />
+          <SchoolNameInput
+            label="High school name"
+            value={highSchool.schoolName}
+            onChange={(schoolName) => patchHighSchool({ schoolName })}
+            required
+          />
+          <HsTypeSelect highSchool={highSchool} patchHighSchool={patchHighSchool} />
+          <GradYearSelect
+            value={highSchool.graduationYear}
+            onChange={(graduationYear) => patchHighSchool({ graduationYear })}
+          />
+          <StatefulSelect
+            label="Where did your family live while you were in high school?"
+            value={highSchool.familyHomeDuringHighSchool}
+            onChange={(familyHomeDuringHighSchool) =>
+              patchHighSchool({ familyHomeDuringHighSchool })
+            }
+            options={FAMILY_HOME_DURING_HIGH_SCHOOL}
+            required
+          />
+        </fieldset>
+      )}
 
-      <fieldset className="space-y-4 border-t border-ns-border pt-6 md:pt-8">
-        <legend className="font-heading text-lg text-ns-cream">Required confirmations</legend>
-        <Consent name="consent18" label="I am 18 years of age or older." />
-        <Consent
-          name="consentTerms"
-          label={
-            <>
-              I agree to the{" "}
-              <Link href="/terms" className="text-ns-gold underline">
-                Terms
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="text-ns-gold underline">
-                Privacy Policy
-              </Link>
-              .
-            </>
-          }
-        />
-        <Consent
-          name="consentBilling"
-          label="I understand membership is paid and billing starts only after approval and confirmation of a usable reciprocal pool."
-        />
-        <Consent
-          name="consentReview"
-          label="I consent to human review of my application and the information I provide."
-        />
-      </fieldset>
+      {step === 2 && (
+        <>
+          <fieldset className="space-y-5 border-none p-0 md:space-y-6">
+            <legend className="font-heading text-lg text-ns-cream">Preferences</legend>
+            <p className={labelClass} id="gender-label">
+              Gender
+            </p>
+            <div className="mt-3 space-y-2" role="radiogroup" aria-labelledby="gender-label">
+              {GENDER_OPTIONS.map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex cursor-pointer items-center gap-3 text-base text-ns-cream"
+                >
+                  <input
+                    type="radio"
+                    name="genderRadio"
+                    value={opt.value}
+                    checked={gender === opt.value}
+                    onChange={() => setGender(opt.value)}
+                    className="ns-radio"
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
+            {gender === "self_describe" && (
+              <Field label="How you identify" name="genderSelfDescribe" required />
+            )}
 
-      <button
-        type="submit"
-        disabled={under18 || loading}
-        className="club-btn-apply w-full disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-      >
-        {loading ? "Submitting…" : "Apply"}
-      </button>
+            <div>
+              <p className={labelClass} id="seeking-label">
+                Who you want to meet
+              </p>
+              <div className="mt-3 flex flex-col gap-2" aria-labelledby="seeking-label">
+                {SEEKING_GENDER_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.value}
+                    className="flex cursor-pointer items-center gap-3 text-base text-ns-cream"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={seeking.includes(opt.value)}
+                      onChange={() => toggleSeeking(opt.value)}
+                      className="accent-ns-gold"
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid max-w-md gap-4 sm:grid-cols-2">
+              <Field
+                label="Their age — minimum"
+                name="seekingAgeMin"
+                type="number"
+                required
+                placeholder={String(ADMISSION_AGE_MIN)}
+              />
+              <Field
+                label="Their age — maximum"
+                name="seekingAgeMax"
+                type="number"
+                required
+                placeholder={String(ADMISSION_AGE_MAX)}
+              />
+            </div>
+            <Select
+              label="Location preference"
+              name="locationPreference"
+              required
+              options={LOCATION_PREFERENCES}
+            />
+            <Select
+              label="Relationship intention"
+              name="relationshipIntention"
+              required
+              options={RELATIONSHIP_INTENTIONS}
+            />
+          </fieldset>
+
+          <fieldset className="space-y-5 border-t border-ns-border pt-6 md:space-y-6">
+            <legend className="font-heading text-lg text-ns-cream">Referral</legend>
+            <Select
+              label="How you heard about us"
+              name="heardAbout"
+              required
+              options={HEARD_ABOUT_OPTIONS}
+            />
+            <Field label="Referrer name (optional)" name="referrerName" />
+          </fieldset>
+
+          <fieldset className="space-y-4 border-t border-ns-border pt-6">
+            <legend className="font-heading text-lg text-ns-cream">Required confirmations</legend>
+            <Consent name="consent18" label="I am 18 years of age or older." />
+            <Consent
+              name="consentTerms"
+              label={
+                <>
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-ns-gold underline">
+                    Terms
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-ns-gold underline">
+                    Privacy Policy
+                  </Link>
+                  .
+                </>
+              }
+            />
+            <Consent
+              name="consentBilling"
+              label="I understand membership is paid and billing starts only after approval and confirmation of a usable reciprocal pool."
+            />
+            <Consent
+              name="consentReview"
+              label="I consent to human review of my application, including school and background information I provide."
+            />
+          </fieldset>
+        </>
+      )}
+
+      <div className="flex flex-wrap gap-3 pt-2">
+        {step > 0 && (
+          <button
+            type="button"
+            onClick={() => setStep((s) => s - 1)}
+            className="rounded-full border border-ns-border px-6 py-3 text-xs uppercase tracking-widest text-ns-muted hover:text-ns-cream"
+          >
+            Back
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={under18 || loading}
+          className="club-btn-apply min-h-11 flex-1 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:px-10"
+        >
+          {loading
+            ? "Submitting…"
+            : step < STEPS.length - 1
+              ? "Continue"
+              : "Submit application"}
+        </button>
+      </div>
     </form>
+  );
+}
+
+function DobFields({
+  labelClass,
+  inputClass,
+  dobMonth,
+  dobDay,
+  dobYear,
+  setDobMonth,
+  setDobDay,
+  setDobYear,
+  dayOptions,
+  yearOptions,
+  under18,
+  outsideCohort,
+  age,
+}: {
+  labelClass: string;
+  inputClass: string;
+  dobMonth: string;
+  dobDay: string;
+  dobYear: string;
+  setDobMonth: (v: string) => void;
+  setDobDay: (v: string) => void;
+  setDobYear: (v: string) => void;
+  dayOptions: string[];
+  yearOptions: string[];
+  under18: boolean;
+  outsideCohort: boolean;
+  age: number | null;
+}) {
+  return (
+    <div>
+      <label className={labelClass}>Date of birth</label>
+      <div className="mt-3 grid max-w-md grid-cols-3 gap-2">
+        <select
+          aria-label="Birth month"
+          value={dobMonth}
+          onChange={(e) => {
+            setDobMonth(e.target.value);
+            setDobDay("");
+          }}
+          required
+          className={inputClass}
+        >
+          <option value="">Month</option>
+          {DOB_MONTHS.map((m) => (
+            <option key={m.value} value={m.value}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Birth day"
+          value={dobDay}
+          onChange={(e) => setDobDay(e.target.value)}
+          required
+          disabled={!dobMonth}
+          className={inputClass}
+        >
+          <option value="">Day</option>
+          {dayOptions.map((d) => (
+            <option key={d} value={d.padStart(2, "0")}>
+              {d}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Birth year"
+          value={dobYear}
+          onChange={(e) => setDobYear(e.target.value)}
+          required
+          className={inputClass}
+        >
+          <option value="">Year</option>
+          {yearOptions.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+      </div>
+      {under18 && (
+        <p className="mt-2 text-sm text-red-400">Must be 18 or older to apply.</p>
+      )}
+      {age !== null && age >= 18 && outsideCohort && (
+        <p className="mt-2 text-sm text-ns-gold">
+          Outside current admission window (ages {ADMISSION_AGE_MIN}–{ADMISSION_AGE_MAX}).
+          You may still apply; review is case by case.
+        </p>
+      )}
+      {age !== null && age >= 18 && admissionCohort(age) === "21-50" && (
+        <p className="mt-2 text-sm text-ns-muted">
+          Within current admission ages {ADMISSION_AGE_MIN}–{ADMISSION_AGE_MAX}.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function HsTypeSelect({
+  highSchool,
+  patchHighSchool,
+}: {
+  highSchool: HighSchoolRecord;
+  patchHighSchool: (p: Partial<HighSchoolRecord>) => void;
+}) {
+  return (
+    <div>
+      <label className={labelClass} htmlFor="hs-type">
+        High school type
+      </label>
+      <select
+        id="hs-type"
+        value={highSchool.schoolType}
+        onChange={(e) => patchHighSchool({ schoolType: e.target.value })}
+        required
+        className={inputClass}
+      >
+        <option value="" disabled>
+          Select…
+        </option>
+        {HIGH_SCHOOL_TYPES.map((t) => (
+          <option key={t} value={t}>
+            {t}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function GradYearSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label className={labelClass} htmlFor="hs-grad-year">
+        High school graduation year
+      </label>
+      <select
+        id="hs-grad-year"
+        name="hsGradYear"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required
+        className={inputClass}
+      >
+        <option value="" disabled>
+          Select…
+        </option>
+        {highSchoolGraduationYears().map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 
@@ -753,100 +741,6 @@ function Field({
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         className={inputClass}
       />
-    </div>
-  );
-}
-
-function TextArea({
-  label,
-  name,
-  rows = 4,
-  required,
-  placeholder,
-  hint,
-}: {
-  label: string;
-  name: string;
-  rows?: number;
-  required?: boolean;
-  placeholder?: string;
-  hint?: string;
-}) {
-  return (
-    <div>
-      <label className={labelClass} htmlFor={name}>
-        {label}
-      </label>
-      {hint && <p className="mt-1 text-sm text-ns-muted">{hint}</p>}
-      <textarea
-        id={name}
-        name={name}
-        rows={rows}
-        required={required}
-        placeholder={placeholder}
-        className={inputClass}
-      />
-    </div>
-  );
-}
-
-function ProfilePhotoUpload({
-  previewUrl,
-  error,
-  onFile,
-  onClear,
-}: {
-  previewUrl: string | null;
-  error: string;
-  onFile: (file: File) => void | Promise<void>;
-  onClear: () => void;
-}) {
-  return (
-    <div>
-      <p className={labelClass}>Photo (optional)</p>
-      <p className="mt-1 text-sm text-ns-muted">
-        One recent image, max 1.5 MB. Stored securely with your application.
-      </p>
-      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start">
-        <label className="flex min-h-[7.5rem] flex-1 cursor-pointer flex-col items-center justify-center rounded border border-dashed border-ns-border bg-ns-elevated/40 px-4 py-6 text-center transition hover:border-ns-gold/60">
-          <span className="text-sm text-ns-cream">
-            {previewUrl ? "Replace photo" : "Choose an image"}
-          </span>
-          <span className="mt-1 text-xs text-ns-muted">JPEG · PNG · WebP</span>
-          <input
-            type="file"
-            accept={PROFILE_PHOTO_ACCEPT}
-            className="sr-only"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void onFile(file);
-              e.target.value = "";
-            }}
-          />
-        </label>
-        {previewUrl && (
-          <div className="relative shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={previewUrl}
-              alt="Your selected profile preview"
-              className="h-28 w-28 rounded border border-ns-border object-cover sm:h-32 sm:w-32"
-            />
-            <button
-              type="button"
-              onClick={onClear}
-              className="mt-2 w-full text-xs uppercase tracking-wider text-ns-gold hover:text-ns-cream"
-            >
-              Remove
-            </button>
-          </div>
-        )}
-      </div>
-      {error && (
-        <p className="mt-2 text-sm text-red-400" role="alert">
-          {error}
-        </p>
-      )}
     </div>
   );
 }

@@ -115,6 +115,28 @@ export const ADMISSION_AGE_MAX = 50;
 
 export const ADMISSION_AGE_COPY = `Currently admitting ages ${ADMISSION_AGE_MIN}–${ADMISSION_AGE_MAX}.`;
 
+export function highSchoolGraduationYears(): string[] {
+  const end = new Date().getFullYear() + 1;
+  const years: string[] = [];
+  for (let y = end; y >= 1965; y--) years.push(String(y));
+  return years;
+}
+
+export const DOB_MONTHS = [
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+] as const;
+
 export const SUMMER_DESTINATIONS = [
   "Hamptons",
   "Nantucket",

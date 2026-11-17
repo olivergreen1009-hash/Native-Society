@@ -1,34 +1,9 @@
 import type {
-  ApplicationProfilePhoto,
   HighSchoolRecord,
   InquiryPoolKey,
   InquirySubmission,
   OptionalSchoolRecord,
 } from "@/lib/types";
-import { SUMMER_DESTINATIONS } from "@/lib/application-options";
-
-const MAX_PROFILE_PHOTO_BYTES = 1.5 * 1024 * 1024;
-const ALLOWED_PHOTO_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
-
-function validateProfilePhoto(
-  photo: ApplicationProfilePhoto | undefined,
-): string | null {
-  if (!photo) return null;
-  if (!ALLOWED_PHOTO_TYPES.has(photo.mimeType)) {
-    return "Profile photo must be a JPEG, PNG, or WebP image.";
-  }
-  if (photo.sizeBytes > MAX_PROFILE_PHOTO_BYTES) {
-    return "Profile photo must be 1.5 MB or smaller.";
-  }
-  if (!photo.dataBase64?.trim()) {
-    return "Profile photo upload failed. Try again or submit without a photo.";
-  }
-  return null;
-}
 import {
   admissionCohort,
   ageFromDateOfBirth,
@@ -153,36 +128,7 @@ export function validateApplicationBody(
     return { ok: false, error: "Complete all required sections." };
   }
 
-  const occupation = body.occupation?.trim();
-  if (!occupation) {
-    return { ok: false, error: "Enter your occupation or industry." };
-  }
-
-  const summerDestination = body.summerDestination?.trim();
-  if (!summerDestination || !SUMMER_DESTINATIONS.includes(summerDestination as (typeof SUMMER_DESTINATIONS)[number])) {
-    return { ok: false, error: "Select where you usually summer." };
-  }
-
-  let summerOther: string | undefined;
-  if (summerDestination === "Other") {
-    summerOther = body.summerOther?.trim();
-    if (!summerOther) {
-      return { ok: false, error: "Describe where you summer when selecting Other." };
-    }
-  }
-
-  const shortBio = body.shortBio?.trim();
-  if (!shortBio || shortBio.length < 40) {
-    return {
-      ok: false,
-      error: "Add a short bio or what you are looking for (at least 40 characters).",
-    };
-  }
-
-  const photoError = validateProfilePhoto(body.profilePhoto);
-  if (photoError) {
-    return { ok: false, error: photoError };
-  }
+  const occupation = body.occupation?.trim() || undefined;
 
   const poolKey: InquiryPoolKey = buildPoolKey({
     gender: body.gender,
@@ -215,10 +161,10 @@ export function validateApplicationBody(
     relationshipIntention: body.relationshipIntention,
     optionalNote: body.optionalNote?.trim() || undefined,
     occupation,
-    summerDestination,
-    summerOther,
+    summerDestination: body.summerDestination?.trim() || undefined,
+    summerOther: body.summerOther?.trim() || undefined,
     charityBoardInvolvement: body.charityBoardInvolvement?.trim() || undefined,
-    shortBio,
+    shortBio: body.shortBio?.trim() || undefined,
     profilePhoto: body.profilePhoto,
     highSchool: {
       schoolName: hs.schoolName.trim(),
