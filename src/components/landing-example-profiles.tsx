@@ -30,12 +30,12 @@ export function LandingExampleProfiles() {
                 className="overflow-hidden rounded border border-ns-border bg-ns-surface"
                 aria-label={`Example profile: ${profile.firstName}, illustrative only`}
               >
-                <div className="relative aspect-[4/3] overflow-hidden md:aspect-square">
+                <div className="relative aspect-[3/4] overflow-hidden sm:aspect-[4/5] md:aspect-square">
                   <Image
                     src={profile.imageUrl}
                     alt=""
                     fill
-                    className="object-cover object-top"
+                    className="object-cover object-[center_22%] md:object-[center_20%]"
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                   />
                   <span className="absolute left-1.5 top-1.5 rounded border border-ns-gold/80 bg-ns-bg/90 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-widest text-ns-gold md:left-2 md:top-2 md:px-2 md:text-[11px]">
