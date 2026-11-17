@@ -66,6 +66,12 @@ export function ApplicationForm() {
   const [nycYearsBefore18, setNycYearsBefore18] = useState("");
   const [gender, setGender] = useState("");
   const [seeking, setSeeking] = useState<string[]>([]);
+  const [seekingAgeMin, setSeekingAgeMin] = useState(String(ADMISSION_AGE_MIN));
+  const [seekingAgeMax, setSeekingAgeMax] = useState(String(ADMISSION_AGE_MAX));
+  const [consent18, setConsent18] = useState(false);
+  const [consentTerms, setConsentTerms] = useState(false);
+  const [consentBilling, setConsentBilling] = useState(false);
+  const [consentReview, setConsentReview] = useState(false);
   const [highSchool, setHighSchool] = useState<HighSchoolRecord>(emptyHighSchool);
 
   const dateOfBirth = composeDob(dobMonth, dobDay, dobYear);
@@ -81,10 +87,39 @@ export function ApplicationForm() {
     String(new Date().getFullYear() - 18 - i),
   );
 
+  const openToAllGenders = seeking.includes("open");
+
   const toggleSeeking = (value: string) => {
-    setSeeking((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
-    );
+    if (value === "open") {
+      setSeeking((prev) => (prev.includes("open") ? [] : ["open"]));
+      return;
+    }
+    setSeeking((prev) => {
+      const withoutOpen = prev.filter((v) => v !== "open");
+      return withoutOpen.includes(value)
+        ? withoutOpen.filter((v) => v !== value)
+        : [...withoutOpen, value];
+    });
+  };
+
+  const parseSeekingAges = (): { min: number; max: number } | null => {
+    const min = Number(seekingAgeMin);
+    const max = Number(seekingAgeMax);
+    if (Number.isNaN(min) || Number.isNaN(max)) return null;
+    return { min, max };
+  };
+
+  const validateSeekingAgeRange = (): boolean => {
+    const ages = parseSeekingAges();
+    if (!ages || ages.min < 18) {
+      setError("Enter a valid minimum age (18 or older).");
+      return false;
+    }
+    if (ages.max < ages.min) {
+      setError("Minimum age cannot be greater than maximum age.");
+      return false;
+    }
+    return true;
   };
 
   const patchHighSchool = (patch: Partial<HighSchoolRecord>) => {
@@ -157,21 +192,15 @@ export function ApplicationForm() {
     setLoading(true);
 
     const ageAtSubmission = ageFromDateOfBirth(dateOfBirth)!;
-    const seekingAgeMin = Number(data.get("seekingAgeMin"));
-    const seekingAgeMax = Number(data.get("seekingAgeMax"));
-    const locationPreference = String(data.get("locationPreference") ?? "");
-    const relationshipIntention = String(data.get("relationshipIntention") ?? "");
-
-    if (
-      Number.isNaN(seekingAgeMin) ||
-      Number.isNaN(seekingAgeMax) ||
-      seekingAgeMin < 18 ||
-      seekingAgeMax < seekingAgeMin
-    ) {
-      setError("Enter a valid age range for who you want to meet.");
+    const ages = parseSeekingAges();
+    if (!validateSeekingAgeRange()) {
       setLoading(false);
       return;
     }
+    const seekingAgeMinNum = ages!.min;
+    const seekingAgeMaxNum = ages!.max;
+    const locationPreference = String(data.get("locationPreference") ?? "");
+    const relationshipIntention = String(data.get("relationshipIntention") ?? "");
     if (!locationPreference || !relationshipIntention) {
       setError("Select location preference and relationship intention.");
       setLoading(false);
@@ -184,10 +213,10 @@ export function ApplicationForm() {
     }
 
     const consents = {
-      age18: data.get("consent18") === "on",
-      termsPrivacy: data.get("consentTerms") === "on",
-      billingAfterPool: data.get("consentBilling") === "on",
-      applicationReview: data.get("consentReview") === "on",
+      age18: consent18,
+      termsPrivacy: consentTerms,
+      billingAfterPool: consentBilling,
+      applicationReview: consentReview,
     };
     if (!Object.values(consents).every(Boolean)) {
       setError("Please accept all required confirmations.");
@@ -223,8 +252,8 @@ export function ApplicationForm() {
       gender,
       genderSelfDescribe,
       seekingGenders: [...seeking],
-      seekingAgeMin,
-      seekingAgeMax,
+      seekingAgeMin: seekingAgeMinNum,
+      seekingAgeMax: seekingAgeMaxNum,
       locationPreference,
       relationshipIntention,
       occupation: occupationTrimmed || undefined,
@@ -430,21 +459,30 @@ export function ApplicationForm() {
                 Who you want to meet
               </p>
               <div className="mt-3 flex flex-col gap-2" aria-labelledby="seeking-label">
-                {SEEKING_GENDER_OPTIONS.map((opt) => (
-                  <label
-                    key={opt.value}
-                    className="flex cursor-pointer items-center gap-3 text-base text-ns-cream"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={seeking.includes(opt.value)}
-                      onChange={() => toggleSeeking(opt.value)}
-                      className="accent-ns-gold"
-                    />
-                    {opt.label}
-                  </label>
-                ))}
+                {SEEKING_GENDER_OPTIONS.map((opt) => {
+                  const disabled = openToAllGenders && opt.value !== "open";
+                  return (
+                    <label
+                      key={opt.value}
+                      className={`flex items-center gap-3 text-base ${disabled ? "cursor-not-allowed opacity-45" : "cursor-pointer text-ns-cream"}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={seeking.includes(opt.value)}
+                        disabled={disabled}
+                        onChange={() => toggleSeeking(opt.value)}
+                        className="accent-ns-gold disabled:cursor-not-allowed"
+                      />
+                      {opt.label}
+                    </label>
+                  );
+                })}
               </div>
+              {openToAllGenders ? (
+                <p className="mt-2 text-sm text-ns-muted">
+                  Open to all genders — individual options are not needed.
+                </p>
+              ) : null}
             </div>
 
             <div className="grid max-w-md gap-4 sm:grid-cols-2">
@@ -453,16 +491,25 @@ export function ApplicationForm() {
                 name="seekingAgeMin"
                 type="number"
                 required
-                placeholder={String(ADMISSION_AGE_MIN)}
+                min={18}
+                max={ADMISSION_AGE_MAX}
+                value={seekingAgeMin}
+                onChange={setSeekingAgeMin}
               />
               <Field
                 label="Their age — maximum"
                 name="seekingAgeMax"
                 type="number"
                 required
-                placeholder={String(ADMISSION_AGE_MAX)}
+                min={18}
+                max={99}
+                value={seekingAgeMax}
+                onChange={setSeekingAgeMax}
               />
             </div>
+            <p className="text-sm text-ns-muted">
+              Default range {ADMISSION_AGE_MIN}–{ADMISSION_AGE_MAX}; adjust as you like.
+            </p>
             <Select
               label="Location preference"
               name="locationPreference"
@@ -490,9 +537,14 @@ export function ApplicationForm() {
 
           <fieldset className="space-y-4 border-t border-ns-border pt-6">
             <legend className="font-heading text-lg text-ns-cream">Required confirmations</legend>
-            <Consent name="consent18" label="I am 18 years of age or older." />
             <Consent
-              name="consentTerms"
+              checked={consent18}
+              onChange={setConsent18}
+              label="I am 18 years of age or older."
+            />
+            <Consent
+              checked={consentTerms}
+              onChange={setConsentTerms}
               label={
                 <>
                   I agree to the{" "}
@@ -508,11 +560,13 @@ export function ApplicationForm() {
               }
             />
             <Consent
-              name="consentBilling"
+              checked={consentBilling}
+              onChange={setConsentBilling}
               label="I understand membership is paid and billing starts only after approval and confirmation of a usable reciprocal pool."
             />
             <Consent
-              name="consentReview"
+              checked={consentReview}
+              onChange={setConsentReview}
               label="I consent to human review of my application, including school and background information I provide."
             />
           </fieldset>
@@ -750,6 +804,8 @@ function Field({
   required,
   placeholder,
   autoComplete,
+  min,
+  max,
   value,
   onChange,
 }: {
@@ -759,6 +815,8 @@ function Field({
   required?: boolean;
   placeholder?: string;
   autoComplete?: string;
+  min?: number;
+  max?: number;
   value?: string;
   onChange?: (value: string) => void;
 }) {
@@ -775,6 +833,8 @@ function Field({
         required={required && !isControlled}
         placeholder={placeholder}
         autoComplete={autoComplete}
+        min={min}
+        max={max}
         value={value}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         className={inputClass}
@@ -848,13 +908,21 @@ function SchoolNameInput({
   );
 }
 
-function Consent({ name, label }: { name: string; label: ReactNode }) {
+function Consent({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  label: ReactNode;
+}) {
   return (
     <label className="flex cursor-pointer gap-3 text-base leading-relaxed text-ns-cream">
       <input
         type="checkbox"
-        name={name}
-        required
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
         className="mt-1 shrink-0 accent-ns-gold"
       />
       <span>{label}</span>

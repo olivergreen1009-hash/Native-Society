@@ -11,7 +11,7 @@ const demoCopy: Record<
 > = {
   pending: {
     title: "Application received",
-    body: "Our admissions team is reviewing your application and typically responds within two weeks. Approval does not start billing. If you are approved, you will receive sign-in instructions to complete your member profile (photo, bio, and preferences) and join the weekly introduction cycle.",
+    body: "Our admissions team is reviewing your application and typically responds within two weeks. Approval does not start billing. If you are approved, you will receive sign-in instructions to complete your member profile (photo, bio, and prompts) and join the weekly introduction cycle.",
   },
   more_info_needed: {
     title: "More information requested",

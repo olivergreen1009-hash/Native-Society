@@ -32,6 +32,9 @@ export function SiteHeader({
     window.location.href = "/";
   };
 
+  const hideApplyCta =
+    pathname === "/apply" || pathname.startsWith("/application/");
+
   return (
     <header className="fixed top-0 z-50 w-full border-b border-ns-border bg-ns-bg/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
@@ -47,12 +50,14 @@ export function SiteHeader({
               <Link href="/login" className="hidden min-h-11 items-center hover:text-ns-cream sm:inline-flex">
                 Sign in
               </Link>
-              <Link
-                href="/apply"
-                className="inline-flex min-h-11 items-center rounded-full border border-ns-gold/60 px-4 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
-              >
-                Apply
-              </Link>
+              {!hideApplyCta && (
+                <Link
+                  href="/apply"
+                  className="inline-flex min-h-11 items-center rounded-full border border-ns-gold/60 px-4 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
+                >
+                  Apply
+                </Link>
+              )}
             </>
           ) : (
             <>
