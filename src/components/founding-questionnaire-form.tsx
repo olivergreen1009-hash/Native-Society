@@ -60,8 +60,8 @@ export function FoundingQuestionnaireForm({ memberId }: { memberId: string }) {
   if (submitted) {
     return (
       <article className="rounded border border-ns-gold/40 bg-ns-surface p-8 text-center">
-        <p className="font-heading text-2xl text-ns-cream">Thank you.</p>
-        <p className="mt-4 text-sm leading-relaxed text-ns-muted">
+        <p className="font-heading text-2xl text-white">Thank you.</p>
+        <p className="mt-4 text-sm leading-relaxed text-white">
           Your profile is under review. Gallery access will be granted once
           approved.
         </p>
@@ -74,9 +74,9 @@ export function FoundingQuestionnaireForm({ memberId }: { memberId: string }) {
       <p className="text-xs uppercase tracking-widest text-ns-gold">
         Section {sectionIndex} of {QUESTIONNAIRE_SECTION_COUNT}
       </p>
-      <h2 className="font-heading mt-2 text-2xl text-ns-cream">{section.title}</h2>
+      <h2 className="font-heading mt-2 text-2xl text-white">{section.title}</h2>
       {"intro" in section && section.intro && (
-        <p className="mt-3 text-sm text-ns-muted">{section.intro}</p>
+        <p className="mt-3 text-sm text-white">{section.intro}</p>
       )}
 
       <form
@@ -89,7 +89,7 @@ export function FoundingQuestionnaireForm({ memberId }: { memberId: string }) {
       >
         {section.fields.map((field) => (
           <fieldset key={field.key} className="space-y-2">
-            <label className="block text-xs uppercase tracking-widest text-ns-muted">
+            <label className="block text-xs uppercase tracking-widest text-white">
               {field.label}
             </label>
             {field.type === "select" ? (
@@ -97,7 +97,7 @@ export function FoundingQuestionnaireForm({ memberId }: { memberId: string }) {
                 value={sectionValues[field.key] ?? ""}
                 onChange={(e) => setField(field.key, e.target.value)}
                 required={sectionIndex < QUESTIONNAIRE_SECTION_COUNT}
-                className="w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none focus:border-ns-gold"
+                className="w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-white outline-none focus:border-ns-gold"
               >
                 <option value="">Select one</option>
                 {field.options?.map((opt) => (
@@ -112,13 +112,13 @@ export function FoundingQuestionnaireForm({ memberId }: { memberId: string }) {
                 onChange={(e) => setField(field.key, e.target.value)}
                 rows={4}
                 placeholder={"placeholder" in field ? field.placeholder : undefined}
-                className="w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none focus:border-ns-gold"
+                className="w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-white outline-none focus:border-ns-gold"
               />
             ) : (
               <input
                 value={sectionValues[field.key] ?? ""}
                 onChange={(e) => setField(field.key, e.target.value)}
-                className="w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none focus:border-ns-gold"
+                className="w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-white outline-none focus:border-ns-gold"
               />
             )}
           </fieldset>
@@ -131,7 +131,7 @@ export function FoundingQuestionnaireForm({ memberId }: { memberId: string }) {
               onClick={() =>
                 persist({ ...data, currentSection: sectionIndex - 1 })
               }
-              className="rounded-full border border-ns-border px-6 py-3 text-xs uppercase tracking-widest text-ns-cream"
+              className="rounded-full border border-ns-border px-6 py-3 text-xs uppercase tracking-widest text-white"
             >
               Previous section
             </button>

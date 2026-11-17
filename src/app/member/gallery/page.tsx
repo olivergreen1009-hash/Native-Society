@@ -43,20 +43,20 @@ export default function GalleryPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Curated for you</p>
-          <h1 className="font-heading mt-3 text-4xl text-ns-cream">Private Gallery</h1>
+          <h1 className="font-heading mt-3 text-4xl text-white">Private Gallery</h1>
         </div>
-        <p className="flex items-center gap-2 text-xs uppercase tracking-widest text-ns-muted">
+        <p className="flex items-center gap-2 text-xs uppercase tracking-widest text-white">
           <LockIcon />
           Confidential · mutual interest required
         </p>
       </div>
-      <p className="mt-4 max-w-2xl text-sm text-ns-muted">
+      <p className="mt-4 max-w-2xl text-sm text-white">
         A limited selection of curated profiles. Request an introduction when someone
         interests you; we facilitate only when interest is mutual.
       </p>
 
       {profiles.length === 0 ? (
-        <p className="mt-12 rounded border border-ns-border bg-ns-surface p-8 text-sm leading-relaxed text-ns-muted">
+        <p className="mt-12 rounded border border-ns-border bg-ns-surface p-8 text-sm leading-relaxed text-white">
           Your curator is preparing your next selection. You will be notified when new
           profiles are ready.
         </p>
@@ -78,15 +78,15 @@ export default function GalleryPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-ns-bg/20 to-transparent" />
                 <div className="absolute bottom-0 p-5">
-                  <p className="font-heading text-xl text-ns-cream">
+                  <p className="font-heading text-xl text-white">
                     {profile.firstName} · {profile.age}
                   </p>
-                  <p className="text-xs text-ns-muted">{profile.neighborhood}</p>
+                  <p className="text-xs text-white">{profile.neighborhood}</p>
                   <ul className="mt-2 flex flex-wrap gap-1">
                     {profile.interests.slice(0, 3).map((interest) => (
                       <li
                         key={interest}
-                        className="rounded border border-ns-border/60 px-2 py-0.5 text-[10px] text-ns-muted"
+                        className="rounded border border-ns-border/60 px-2 py-0.5 text-[10px] text-white"
                       >
                         {interest}
                       </li>

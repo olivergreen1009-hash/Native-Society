@@ -23,13 +23,13 @@ export default function IntroductionsPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 md:px-8">
       <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Introductions</p>
-      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Your requests</h1>
-      <p className="mt-4 text-sm text-ns-muted">
+      <h1 className="font-heading mt-3 text-4xl text-white">Your requests</h1>
+      <p className="mt-4 text-sm text-white">
         Status updates appear here once curators advance your request.
       </p>
 
       {items.length === 0 ? (
-        <p className="mt-12 rounded border border-ns-border bg-ns-surface p-8 text-sm text-ns-muted">
+        <p className="mt-12 rounded border border-ns-border bg-ns-surface p-8 text-sm text-white">
           No introduction requests yet. Visit your gallery when you are ready.
         </p>
       ) : (
@@ -41,13 +41,13 @@ export default function IntroductionsPage() {
                 key={item.id}
                 className="rounded border border-ns-border bg-ns-surface p-6"
               >
-                <p className="font-heading text-xl text-ns-cream">
+                <p className="font-heading text-xl text-white">
                   {profile?.firstName ?? "Member"} · {statusLabel(item.status)}
                 </p>
-                <p className="mt-2 text-xs text-ns-muted">
+                <p className="mt-2 text-xs text-white">
                   Submitted {new Date(item.createdAt).toLocaleString()}
                 </p>
-                <p className="mt-3 text-sm text-ns-muted">{item.message}</p>
+                <p className="mt-3 text-sm text-white">{item.message}</p>
               </li>
             );
           })}

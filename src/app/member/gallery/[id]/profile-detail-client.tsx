@@ -24,7 +24,7 @@ export function ProfileDetailClient() {
   if (!profile) {
     return (
       <section className="mx-auto max-w-3xl px-5">
-        <p className="text-ns-muted">Profile not found.</p>
+        <p className="text-white">Profile not found.</p>
         <Link href="/member/gallery" className="mt-4 inline-block text-ns-gold">
           Back to gallery
         </Link>
@@ -57,36 +57,36 @@ export function ProfileDetailClient() {
         </figure>
         <section>
           <p className="text-xs uppercase tracking-widest text-ns-gold">Compatibility</p>
-          <h1 className="font-heading mt-2 text-4xl text-ns-cream">
+          <h1 className="font-heading mt-2 text-4xl text-white">
             {profile.firstName} · {profile.age}
           </h1>
-          <p className="mt-2 text-sm text-ns-muted">{profile.neighborhood}</p>
+          <p className="mt-2 text-sm text-white">{profile.neighborhood}</p>
           <ul className="mt-4 flex flex-wrap gap-2">
             {profile.interests.map((interest) => (
               <li
                 key={interest}
-                className="rounded-full border border-ns-border px-3 py-1 text-xs text-ns-muted"
+                className="rounded-full border border-ns-border px-3 py-1 text-xs text-white"
               >
                 {interest}
               </li>
             ))}
           </ul>
-          <p className="mt-6 leading-relaxed text-ns-muted">{profile.memberBio}</p>
+          <p className="mt-6 leading-relaxed text-white">{profile.memberBio}</p>
 
           {submitted ? (
-            <p className="mt-10 rounded border border-ns-gold/40 bg-ns-surface p-5 text-sm text-ns-cream">
+            <p className="mt-10 rounded border border-ns-gold/40 bg-ns-surface p-5 text-sm text-white">
               Request received. A curator will follow up privately.
             </p>
           ) : (
             <form onSubmit={requestIntro} className="mt-10 space-y-4">
-              <p className="text-xs uppercase tracking-widest text-ns-muted">
+              <p className="text-xs uppercase tracking-widest text-ns-gold">
                 Request introduction
               </p>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={4}
-                className="w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none focus:border-ns-gold"
+                className="w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-white outline-none focus:border-ns-gold"
               />
               <button
                 type="submit"

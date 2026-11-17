@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState, type ReactNode } from "react";
 import {
+  ADMISSION_AGE_MAX,
+  ADMISSION_AGE_MIN,
   CURRENT_AREAS,
   FAMILY_HOME_DURING_HIGH_SCHOOL,
   GENDER_OPTIONS,
@@ -201,14 +203,31 @@ export function ApplicationForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      const json = (await res.json()) as {
+        error?: string;
+        details?: string;
+        ok?: boolean;
+        applicationId?: string;
+      };
       if (!res.ok) {
-        const json = (await res.json()) as { error?: string };
-        setError(json.error ?? "Unable to submit application.");
+        const detail = json.details ? ` (${json.details})` : "";
+        setError(
+          json.error
+            ? `${json.error}${detail}`
+            : "Unable to submit application.",
+        );
+        console.error("[applications] Submit failed:", res.status, json);
         setLoading(false);
         return;
       }
-      const json = (await res.json()) as { applicationId: string };
-      router.push(`/application/status?id=${encodeURIComponent(json.applicationId)}`);
+      setLoading(false);
+      if (json.applicationId) {
+        router.push(
+          `/application/status?id=${encodeURIComponent(json.applicationId)}`,
+        );
+      } else {
+        router.push("/application/status?demo=pending");
+      }
     } catch {
       setError("Unable to submit application. Please try again.");
       setLoading(false);
@@ -260,12 +279,14 @@ export function ApplicationForm() {
           )}
           {age !== null && age >= 18 && outsideCohort && (
             <p className="mt-2 text-sm text-ns-gold">
-              Outside current admission window (ages 23–40). You may still apply; review is
-              case by case.
+              Outside current admission window (ages {ADMISSION_AGE_MIN}–{ADMISSION_AGE_MAX}).
+              You may still apply; review is case by case.
             </p>
           )}
-          {age !== null && cohort === "23-40" && (
-            <p className="mt-2 text-sm text-ns-muted">Within current admission ages 23–40.</p>
+          {age !== null && cohort === "21-50" && (
+            <p className="mt-2 text-sm text-ns-muted">
+              Within current admission ages {ADMISSION_AGE_MIN}–{ADMISSION_AGE_MAX}.
+            </p>
           )}
         </div>
         <Select label="Current area" name="currentArea" required options={CURRENT_AREAS} />
@@ -447,14 +468,14 @@ export function ApplicationForm() {
             name="seekingAgeMin"
             type="number"
             required
-            placeholder="23"
+            placeholder={String(ADMISSION_AGE_MIN)}
           />
           <Field
             label="Their age — maximum"
             name="seekingAgeMax"
             type="number"
             required
-            placeholder="40"
+            placeholder={String(ADMISSION_AGE_MAX)}
           />
         </div>
         <Select

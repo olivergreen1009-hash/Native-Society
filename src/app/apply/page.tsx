@@ -1,6 +1,7 @@
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ApplicationForm } from "@/components/application-form";
+import { ADMISSION_AGE_COPY } from "@/lib/application-options";
 
 export default function ApplyPage() {
   return (
@@ -18,8 +19,8 @@ export default function ApplyPage() {
           backgrounds. Every field is reviewed by our admissions team.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-ns-muted">
-          Currently admitting ages 23–40. Membership is paid. Billing starts only after
-          approval and a confirmed reciprocal pool.
+          {ADMISSION_AGE_COPY} Membership is paid. Billing starts only after approval and
+          a confirmed reciprocal pool.
         </p>
         <ApplicationForm />
       </main>

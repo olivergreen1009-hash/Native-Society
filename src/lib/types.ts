@@ -95,7 +95,7 @@ export interface InquirySubmission {
   emailVerified: boolean;
   dateOfBirth: string;
   ageAtSubmission: number;
-  admissionCohort: "23-40" | "outside_cohort";
+  admissionCohort: "21-50" | "outside_cohort";
   currentArea: string;
   neighborhood?: string;
   gender: string;

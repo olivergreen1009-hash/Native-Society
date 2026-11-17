@@ -101,5 +101,7 @@ export const SCHOOL_SUGGESTIONS = [
   "Other",
 ];
 
-export const ADMISSION_AGE_MIN = 23;
-export const ADMISSION_AGE_MAX = 40;
+export const ADMISSION_AGE_MIN = 21;
+export const ADMISSION_AGE_MAX = 50;
+
+export const ADMISSION_AGE_COPY = `Currently admitting ages ${ADMISSION_AGE_MIN}–${ADMISSION_AGE_MAX}.`;

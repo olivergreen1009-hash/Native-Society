@@ -3,7 +3,7 @@ import { ProfileDetailClient } from "./profile-detail-client";
 
 export default function ProfileDetailPage() {
   return (
-    <Suspense fallback={<p className="px-5 text-ns-muted">Loading profile…</p>}>
+    <Suspense fallback={<p className="px-5 text-white">Loading profile…</p>}>
       <ProfileDetailClient />
     </Suspense>
   );

@@ -21,10 +21,10 @@ export default function QuestionnairePage() {
   return (
     <div className="mx-auto max-w-2xl px-5 md:px-8">
       <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Founding cohort</p>
-      <h1 className="font-heading mt-3 text-4xl text-ns-cream">
+      <h1 className="font-heading mt-3 text-4xl text-white">
         Compatibility questionnaire
       </h1>
-      <p className="mt-4 text-sm text-ns-muted">
+      <p className="mt-4 text-sm text-white">
         Please answer thoughtfully. Your responses are used solely to curate
         introductions and are never shared with other members. Incomplete
         questionnaires delay gallery access.

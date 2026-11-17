@@ -14,7 +14,7 @@ export function ageFromDateOfBirth(dob: string): number | null {
 export function admissionCohort(
   age: number,
 ): InquirySubmission["admissionCohort"] {
-  if (age >= ADMISSION_AGE_MIN && age <= ADMISSION_AGE_MAX) return "23-40";
+  if (age >= ADMISSION_AGE_MIN && age <= ADMISSION_AGE_MAX) return "21-50";
   return "outside_cohort";
 }
 

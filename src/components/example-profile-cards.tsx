@@ -51,19 +51,19 @@ function ExampleCard({ profile }: { profile: LandingExampleProfile }) {
       <div className="flex flex-1 flex-col px-5 py-6 sm:px-7">
         <h3 className="font-heading text-2xl text-white">
           {profile.firstName}
-          <span className="text-ns-muted"> · {profile.age}</span>
-          <span className="text-ns-muted"> · </span>
+          <span className="text-white"> · {profile.age}</span>
+          <span className="text-white"> · </span>
           <span className="text-lg text-ns-gold">{profile.neighborhood}</span>
         </h3>
         <p className="mt-2 text-base text-ns-gold">{profile.schoolLine}</p>
-        <p className="mt-4 text-sm leading-relaxed text-ns-muted">
-          <span className="text-ns-cream">Interests: </span>
+        <p className="mt-4 text-sm leading-relaxed text-white">
+          <span className="text-white">Interests: </span>
           {profile.interests.join(", ")}
         </p>
-        <blockquote className="mt-4 border-l-2 border-ns-gold/50 pl-4 font-heading text-base italic leading-relaxed text-ns-cream">
+        <blockquote className="mt-4 border-l-2 border-ns-gold/50 pl-4 font-heading text-base italic leading-relaxed text-white">
           {profile.prompt}
         </blockquote>
-        <p className="mt-4 text-sm text-ns-muted">
+        <p className="mt-4 text-sm text-white">
           <span className="text-white">Looking for: </span>
           {profile.lookingFor}
         </p>
@@ -79,13 +79,13 @@ function ExampleCard({ profile }: { profile: LandingExampleProfile }) {
           <button
             type="button"
             disabled
-            className="flex-1 border border-ns-border px-4 py-3 text-base text-ns-muted"
+            className="flex-1 border border-ns-border px-4 py-3 text-base text-white"
             aria-label="Pass (example only)"
           >
             Pass
           </button>
         </div>
-        <p className="mt-3 text-center text-xs text-ns-muted">
+        <p className="mt-3 text-center text-xs text-white">
           Buttons shown for layout only—not functional on examples.
         </p>
       </div>

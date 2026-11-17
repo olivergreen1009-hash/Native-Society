@@ -38,8 +38,8 @@ export default function MemberDashboardPage() {
   return (
     <div className="mx-auto max-w-6xl px-5 md:px-8">
       <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Member home</p>
-      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Your dashboard</h1>
-      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ns-muted">
+      <h1 className="font-heading mt-3 text-4xl text-white">Your dashboard</h1>
+      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white">
         Welcome back. Your curator has refreshed your gallery this week. Review
         compatibilities, complete your questionnaire, and request introductions
         at your own pace.
@@ -87,7 +87,7 @@ export default function MemberDashboardPage() {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <Card className="rounded border border-ns-border bg-ns-surface p-6">
-      <p className="text-xs uppercase tracking-widest text-ns-muted">{label}</p>
+      <p className="text-xs uppercase tracking-widest text-white">{label}</p>
       <p className="font-heading mt-2 text-3xl text-ns-gold">{value}</p>
     </Card>
   );
@@ -106,8 +106,8 @@ function ActionCard({
 }) {
   return (
     <article className="flex flex-col rounded border border-ns-border bg-ns-surface p-6">
-      <h2 className="font-heading text-xl text-ns-cream">{title}</h2>
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-ns-muted">{body}</p>
+      <h2 className="font-heading text-xl text-white">{title}</h2>
+      <p className="mt-3 flex-1 text-sm leading-relaxed text-white">{body}</p>
       <Link
         href={href}
         className="mt-6 inline-flex text-sm uppercase tracking-widest text-ns-gold hover:underline"

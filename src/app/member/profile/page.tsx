@@ -38,8 +38,8 @@ export default function MemberProfilePage() {
   return (
     <div className="mx-auto max-w-2xl px-5 md:px-8">
       <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Your presence</p>
-      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Profile</h1>
-      <p className="mt-4 text-sm text-ns-muted">
+      <h1 className="font-heading mt-3 text-4xl text-white">Profile</h1>
+      <p className="mt-4 text-sm text-white">
         Only curators and facilitated introductions see these details. Keep your tone
         discreet and true to how you move through the city.
       </p>
@@ -52,12 +52,12 @@ export default function MemberProfilePage() {
         />
         <Input label="School lineage" name="school" defaultValue={profile.school} />
         <div>
-          <label className="text-xs uppercase tracking-widest text-ns-muted">Bio</label>
+          <label className="text-xs uppercase tracking-widest text-white">Bio</label>
           <textarea
             name="bio"
             rows={5}
             defaultValue={profile.bio}
-            className="mt-2 w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none focus:border-ns-gold"
+            className="mt-2 w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-white outline-none focus:border-ns-gold"
           />
         </div>
         <button
@@ -85,11 +85,11 @@ function Input({
 }) {
   return (
     <div>
-      <label className="text-xs uppercase tracking-widest text-ns-muted">{label}</label>
+      <label className="text-xs uppercase tracking-widest text-white">{label}</label>
       <input
         name={name}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none focus:border-ns-gold"
+        className="mt-2 w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-white outline-none focus:border-ns-gold"
       />
     </div>
   );

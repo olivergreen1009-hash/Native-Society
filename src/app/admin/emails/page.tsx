@@ -19,10 +19,10 @@ export default function AdminEmailsPage() {
         ← Admin console
       </Link>
       <p className="mt-6 text-xs uppercase tracking-[0.3em] text-ns-gold">Founder tools</p>
-      <h1 className="font-heading mt-3 text-4xl text-ns-cream">
+      <h1 className="font-heading mt-3 text-4xl text-white">
         Onboarding email sequence
       </h1>
-      <p className="mt-4 text-sm text-ns-muted">
+      <p className="mt-4 text-sm text-white">
         Five templates for the founding cohort. Placeholders such as [First Name],
         [email], and [login URL] are ready for your mail client.
       </p>
@@ -36,9 +36,9 @@ export default function AdminEmailsPage() {
               className="rounded border border-ns-border bg-ns-surface p-6"
             >
               <p className="text-xs text-ns-gold">Email {index + 1}</p>
-              <h2 className="font-heading mt-2 text-xl text-ns-cream">{template.title}</h2>
-              <p className="mt-2 text-sm text-ns-muted">Subject: {template.subject}</p>
-              <pre className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap text-xs leading-relaxed text-ns-cream">
+              <h2 className="font-heading mt-2 text-xl text-white">{template.title}</h2>
+              <p className="mt-2 text-sm text-white">Subject: {template.subject}</p>
+              <pre className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap text-xs leading-relaxed text-white">
                 {template.body}
               </pre>
               <button
