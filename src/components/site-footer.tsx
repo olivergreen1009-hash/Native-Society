@@ -2,28 +2,45 @@ import Link from "next/link";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-ns-border bg-ns-surface">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-14 md:flex-row md:items-end md:justify-between md:px-8">
+    <footer className="border-t border-ns-border bg-ns-surface py-12">
+      <div className="mx-auto grid max-w-6xl gap-8 px-5 text-sm text-ns-muted md:grid-cols-3 md:px-8">
         <div>
-          <p className="font-heading text-2xl text-ns-cream">Native Society</p>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-ns-muted">
-            New York Born. Personally Connected. An invitation-only club for
-            adults who grew up in the city and its schools—and want courtship
-            without the noise.
+          <p className="font-heading text-lg text-ns-cream">Native Society</p>
+          <p className="mt-3 max-w-xs leading-relaxed">
+            Private introductions for adults raised in New York City with
+            independent and boarding school roots.
           </p>
         </div>
-        <div className="text-sm text-ns-muted">
-          <p className="text-ns-cream">Founded by Oliver Estreich</p>
-          <p className="mt-1">Manhattan · Brooklyn · By referral only</p>
-          <Link href="/login" className="mt-4 inline-block text-ns-gold hover:underline">
-            Member entrance
+        <div className="flex flex-col gap-2">
+          <p className="text-xs uppercase tracking-widest text-ns-gold">Legal</p>
+          <Link href="/privacy" className="hover:text-ns-cream">
+            Privacy
+          </Link>
+          <Link href="/terms" className="hover:text-ns-cream">
+            Terms
+          </Link>
+          <Link href="/safety" className="hover:text-ns-cream">
+            Safety
+          </Link>
+          <Link href="/contact" className="hover:text-ns-cream">
+            Contact
+          </Link>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-widest text-ns-gold">
+            Membership
+          </p>
+          <p className="mt-3 leading-relaxed">
+            Admission is human-reviewed. Apply once; we respond privately.
+          </p>
+          <Link href="/apply" className="mt-4 inline-block text-ns-gold hover:underline">
+            Begin application →
           </Link>
         </div>
       </div>
-      <div className="border-t border-ns-border py-4 text-center text-xs text-ns-muted">
-        © 2026 Native Society. All introductions are
-        confidential.
-      </div>
+      <p className="mx-auto mt-10 max-w-6xl px-5 text-center text-xs text-ns-muted md:px-8">
+        © {new Date().getFullYear()} Native Society. All rights reserved.
+      </p>
     </footer>
   );
 }

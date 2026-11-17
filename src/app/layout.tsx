@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { Playfair_Display, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-cormorant",
+  variable: "--font-playfair",
 });
 
-const outfit = Outfit({
+const sourceSans = Source_Sans_3({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-source",
 });
 
 export const metadata: Metadata = {
   title: "Native Society",
-  description: "New York Born. Personally Connected.",
+  description:
+    "Private introductions for NYC-raised adults from independent and boarding schools.",
 };
 
 export default function RootLayout({
@@ -24,10 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${outfit.variable}`}>
-      <body className="font-outfit bg-[#0c0c0c] text-[#f4efe6]">
-        {children}
-      </body>
+    <html lang="en" className={`${playfair.variable} ${sourceSans.variable}`}>
+      <body className="min-h-screen bg-ns-bg text-ns-cream antialiased">{children}</body>
     </html>
   );
 }

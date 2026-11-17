@@ -1,14 +1,21 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --background: #0c0c0c;
-  --foreground: #f4efe6;
-  --gold: #c9a96e;
+@theme {
+  --color-ns-bg: #0c0c0c;
+  --color-ns-cream: #f4efe6;
+  --color-ns-muted: #a39e94;
+  --color-ns-gold: #c9a96e;
+  --color-ns-border: #2a2826;
+  --color-ns-surface: #141414;
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-source);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-ns-bg);
+  color: var(--color-ns-cream);
+}
+
+.font-heading {
+  font-family: var(--font-heading), Georgia, serif;
 }

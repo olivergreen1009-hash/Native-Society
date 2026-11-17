@@ -1,0 +1,64 @@
+import type {
+  AdminAction,
+  Application,
+  Block,
+  InterestRecord,
+  MagicLinkToken,
+  Match,
+  Message,
+  Preferences,
+  Profile,
+  RecommendationBatch,
+  Report,
+  User,
+} from "@/types/domain";
+
+export interface MemoryDatabase {
+  users: Map<string, User>;
+  applications: Map<string, Application>;
+  profiles: Map<string, Profile>;
+  preferences: Map<string, Preferences>;
+  batches: Map<string, RecommendationBatch>;
+  interests: InterestRecord[];
+  matches: Match[];
+  messages: Message[];
+  blocks: Block[];
+  reports: Report[];
+  adminActions: AdminAction[];
+  magicLinks: MagicLinkToken[];
+  usersByEmail: Map<string, string>;
+}
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __nsMemoryDb: MemoryDatabase | undefined;
+}
+
+function createEmptyDb(): MemoryDatabase {
+  return {
+    users: new Map(),
+    applications: new Map(),
+    profiles: new Map(),
+    preferences: new Map(),
+    batches: new Map(),
+    interests: [],
+    matches: [],
+    messages: [],
+    blocks: [],
+    reports: [],
+    adminActions: [],
+    magicLinks: [],
+    usersByEmail: new Map(),
+  };
+}
+
+export function getMemoryDb(): MemoryDatabase {
+  if (!globalThis.__nsMemoryDb) {
+    globalThis.__nsMemoryDb = createEmptyDb();
+  }
+  return globalThis.__nsMemoryDb;
+}
+
+export function resetMemoryDb(): void {
+  globalThis.__nsMemoryDb = createEmptyDb();
+}
