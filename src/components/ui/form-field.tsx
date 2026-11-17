@@ -24,7 +24,7 @@ export function FormField({
           type={type}
           required={required}
           placeholder={placeholder}
-          className="mt-2 w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none placeholder:text-ns-muted/60 focus:border-ns-gold"
+          className="mt-1.5 min-h-11 w-full rounded border border-ns-border bg-ns-surface px-4 py-2.5 text-sm text-ns-cream outline-none placeholder:text-ns-muted/60 focus:border-ns-gold md:mt-2 md:py-3"
         />
       )}
     </div>
@@ -32,4 +32,4 @@ export function FormField({
 }
 
 export const inputClassName =
-  "mt-2 w-full rounded border border-ns-border bg-ns-surface px-4 py-3 text-sm text-ns-cream outline-none placeholder:text-ns-muted/60 focus:border-ns-gold";
+  "mt-1.5 min-h-11 w-full rounded border border-ns-border bg-ns-surface px-4 py-2.5 text-sm text-ns-cream outline-none placeholder:text-ns-muted/60 focus:border-ns-gold md:mt-2 md:py-3";
