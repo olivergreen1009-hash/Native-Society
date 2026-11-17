@@ -73,6 +73,17 @@ export function AdminApplications() {
             <p className="mt-1 text-ns-muted">
               {app.schoolHistory} — {app.status}
             </p>
+            {app.intake && (
+              <p className="mt-2 text-xs text-ns-muted">
+                {app.intake.gender}
+                {app.intake.genderSelfDescribe
+                  ? ` (${app.intake.genderSelfDescribe})`
+                  : ""}{" "}
+                · seeks {app.intake.seekingGenders.join(", ")} · ages{" "}
+                {app.intake.seekingAgeMin}–{app.intake.seekingAgeMax} ·{" "}
+                {app.intake.locationPreference}
+              </p>
+            )}
             <textarea
               className="mt-3 w-full rounded border border-ns-border bg-ns-bg px-3 py-2 text-xs"
               placeholder="Note to applicant (optional)"

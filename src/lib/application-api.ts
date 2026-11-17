@@ -1,0 +1,199 @@
+import type {
+  HighSchoolRecord,
+  InquiryPoolKey,
+  InquirySubmission,
+  OptionalSchoolRecord,
+} from "@/lib/types";
+import {
+  admissionCohort,
+  ageFromDateOfBirth,
+  buildPoolKey,
+} from "@/lib/application-validation";
+import type { Application, ApplicationIntake, RelationshipIntention } from "@/types/domain";
+
+const INTENTION_TO_DOMAIN: Record<string, RelationshipIntention> = {
+  "Long-term partnership": "long_term",
+  "Marriage-minded": "marriage_minded",
+  "Dating to see what happens": "open_to_explore",
+  "Seriously dating": "open_to_explore",
+};
+
+export type ApplicationSubmitBody = Omit<
+  InquirySubmission,
+  "id" | "createdAt" | "poolKey" | "admissionCohort" | "ageAtSubmission"
+>;
+
+export function formatSchoolHistory(
+  hs: HighSchoolRecord,
+  elementaryMiddle?: OptionalSchoolRecord,
+  college?: OptionalSchoolRecord,
+): string {
+  const parts = [`${hs.schoolName} (${hs.schoolType}, ${hs.graduationYear})`];
+  if (elementaryMiddle?.schoolName) {
+    parts.unshift(elementaryMiddle.schoolName);
+  }
+  if (college?.schoolName) {
+    parts.push(college.schoolName);
+  }
+  return parts.join(" → ");
+}
+
+export function formatLocation(currentArea: string, neighborhood?: string): string {
+  return neighborhood ? `${neighborhood}, ${currentArea}` : currentArea;
+}
+
+export function formatNycUpbringing(nycYearsBefore18: string): string {
+  return `Lived in NYC before 18: ${nycYearsBefore18}`;
+}
+
+export function formatReferral(heardAbout: string, referrerName?: string): string {
+  return referrerName ? `${heardAbout} (${referrerName})` : heardAbout;
+}
+
+export function mapRelationshipIntention(label: string): RelationshipIntention {
+  return INTENTION_TO_DOMAIN[label] ?? "not_sure";
+}
+
+export function validateApplicationBody(
+  body: ApplicationSubmitBody,
+): { ok: true; intake: ApplicationIntake } | { ok: false; error: string } {
+  const name = body.name?.trim();
+  const email = body.email?.trim();
+  const dateOfBirth = body.dateOfBirth?.trim();
+
+  if (!name || !email || !dateOfBirth) {
+    return { ok: false, error: "Please complete all required fields." };
+  }
+
+  const ageAtSubmission = ageFromDateOfBirth(dateOfBirth);
+  if (ageAtSubmission === null) {
+    return { ok: false, error: "Enter a valid date of birth." };
+  }
+  if (ageAtSubmission < 18) {
+    return { ok: false, error: "You must be at least 18 to apply." };
+  }
+
+  const hs = body.highSchool;
+  if (
+    !hs?.schoolName?.trim() ||
+    !hs.schoolType ||
+    !hs.graduationYear?.trim() ||
+    !hs.familyHomeDuringHighSchool
+  ) {
+    return { ok: false, error: "Complete the required high school section." };
+  }
+
+  if (!body.nycYearsBefore18) {
+    return {
+      ok: false,
+      error: "Select how long you lived in New York City before turning 18.",
+    };
+  }
+
+  const { seekingAgeMin, seekingAgeMax } = body;
+  if (
+    seekingAgeMin === undefined ||
+    seekingAgeMax === undefined ||
+    Number.isNaN(seekingAgeMin) ||
+    Number.isNaN(seekingAgeMax) ||
+    seekingAgeMin < 18 ||
+    seekingAgeMax < seekingAgeMin
+  ) {
+    return { ok: false, error: "Enter a valid age range for who you want to meet." };
+  }
+
+  if (!body.locationPreference || !body.relationshipIntention) {
+    return { ok: false, error: "Select location preference and relationship intention." };
+  }
+
+  if (!body.gender || !body.seekingGenders?.length) {
+    return { ok: false, error: "Select your gender and who you want to meet." };
+  }
+
+  if (body.gender === "self_describe" && !body.genderSelfDescribe?.trim()) {
+    return { ok: false, error: "Please describe how you identify." };
+  }
+
+  const consents = body.consents;
+  if (
+    !consents?.age18 ||
+    !consents.termsPrivacy ||
+    !consents.billingAfterPool ||
+    !consents.applicationReview
+  ) {
+    return { ok: false, error: "Please accept all required confirmations." };
+  }
+
+  if (!body.currentArea || !body.heardAbout) {
+    return { ok: false, error: "Complete all required sections." };
+  }
+
+  const poolKey: InquiryPoolKey = buildPoolKey({
+    gender: body.gender,
+    seekingGenders: body.seekingGenders,
+    ageAtSubmission,
+    seekingAgeMin,
+    seekingAgeMax,
+    locationPreference: body.locationPreference,
+    currentArea: body.currentArea,
+  });
+
+  const intake: ApplicationIntake = {
+    name,
+    email: email.toLowerCase(),
+    emailVerified: false,
+    dateOfBirth,
+    ageAtSubmission,
+    admissionCohort: admissionCohort(ageAtSubmission),
+    currentArea: body.currentArea,
+    neighborhood: body.neighborhood?.trim() || undefined,
+    gender: body.gender,
+    genderSelfDescribe:
+      body.gender === "self_describe"
+        ? body.genderSelfDescribe?.trim()
+        : undefined,
+    seekingGenders: [...body.seekingGenders],
+    seekingAgeMin,
+    seekingAgeMax,
+    locationPreference: body.locationPreference,
+    relationshipIntention: body.relationshipIntention,
+    optionalNote: body.optionalNote?.trim() || undefined,
+    highSchool: {
+      schoolName: hs.schoolName.trim(),
+      schoolType: hs.schoolType,
+      graduationYear: hs.graduationYear.trim(),
+      familyHomeDuringHighSchool: hs.familyHomeDuringHighSchool,
+    },
+    elementaryMiddle: body.elementaryMiddle,
+    college: body.college,
+    nycYearsBefore18: body.nycYearsBefore18,
+    heardAbout: body.heardAbout,
+    referrerName: body.referrerName?.trim() || undefined,
+    consents,
+    poolKey,
+  };
+
+  return { ok: true, intake };
+}
+
+export function applicationFromIntake(intake: ApplicationIntake): Omit<
+  Application,
+  "id" | "submittedAt" | "updatedAt" | "status" | "adminNotes"
+> {
+  return {
+    userId: null,
+    fullName: intake.name,
+    email: intake.email,
+    dateOfBirth: intake.dateOfBirth,
+    location: formatLocation(intake.currentArea, intake.neighborhood),
+    nycUpbringing: formatNycUpbringing(intake.nycYearsBefore18),
+    schoolHistory: formatSchoolHistory(
+      intake.highSchool,
+      intake.elementaryMiddle,
+      intake.college,
+    ),
+    relationshipIntention: mapRelationshipIntention(intake.relationshipIntention),
+    referralSource: formatReferral(intake.heardAbout, intake.referrerName),
+    intake,
+  };
+}

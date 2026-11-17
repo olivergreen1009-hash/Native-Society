@@ -7,6 +7,7 @@
   --color-ns-gold: #c9a96e;
   --color-ns-border: #2a2826;
   --color-ns-surface: #141414;
+  --color-ns-elevated: #141414;
   --font-heading: var(--font-playfair);
   --font-body: var(--font-source);
 }
@@ -18,4 +19,10 @@ body {
 
 .font-heading {
   font-family: var(--font-heading), Georgia, serif;
+}
+
+@layer utilities {
+  .club-btn-apply {
+    @apply font-heading inline-flex min-h-11 items-center justify-center border border-ns-gold bg-ns-gold/10 px-6 py-3 text-base text-ns-cream transition hover:bg-ns-gold/20;
+  }
 }

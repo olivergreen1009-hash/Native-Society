@@ -1,5 +1,7 @@
 /** Core domain types — structured for future Postgres + auth provider swap-in. */
 
+import type { InquirySubmission } from "@/lib/types";
+
 export type UserRole = "member" | "admin";
 
 export type ApplicationStatus =
@@ -67,6 +69,9 @@ export type ProfileModerationStatus =
 
 export type ReportStatus = "open" | "dismissed" | "escalated";
 
+/** Full structured application payload (see commit 28d1000 application-form). */
+export type ApplicationIntake = Omit<InquirySubmission, "id" | "createdAt">;
+
 export interface Application {
   id: string;
   userId: string | null;
@@ -78,6 +83,8 @@ export interface Application {
   schoolHistory: string;
   relationshipIntention: RelationshipIntention;
   referralSource: string;
+  /** Present on applications submitted via the structured apply form. */
+  intake?: ApplicationIntake;
   status: ApplicationStatus;
   adminNotes: string;
   submittedAt: string;
