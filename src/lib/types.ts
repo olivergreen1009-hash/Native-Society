@@ -64,13 +64,61 @@ export interface FoundingQuestionnaire {
   };
 }
 
+export interface HighSchoolRecord {
+  schoolName: string;
+  schoolType: string;
+  graduationYear: string;
+  familyHomeDuringHighSchool: string;
+}
+
+export interface OptionalSchoolRecord {
+  level: "elementary_middle" | "college";
+  schoolName: string;
+  graduationYear?: string;
+}
+
+export interface InquiryPoolKey {
+  gender: string;
+  seekingGenders: string[];
+  age: number;
+  seekingAgeMin: number;
+  seekingAgeMax: number;
+  locationPreference: string;
+  currentArea: string;
+}
+
 export interface InquirySubmission {
   id: string;
+  createdAt: string;
   name: string;
   email: string;
-  school: string;
-  message: string;
-  createdAt: string;
+  emailVerified: boolean;
+  dateOfBirth: string;
+  ageAtSubmission: number;
+  admissionCohort: "23-40" | "outside_cohort";
+  currentArea: string;
+  neighborhood?: string;
+  gender: string;
+  genderSelfDescribe?: string;
+  seekingGenders: string[];
+  seekingAgeMin: number;
+  seekingAgeMax: number;
+  locationPreference: string;
+  relationshipIntention: string;
+  optionalNote?: string;
+  highSchool: HighSchoolRecord;
+  elementaryMiddle?: OptionalSchoolRecord;
+  college?: OptionalSchoolRecord;
+  nycYearsBefore18: string;
+  heardAbout: string;
+  referrerName?: string;
+  consents: {
+    age18: boolean;
+    termsPrivacy: boolean;
+    billingAfterPool: boolean;
+    applicationReview: boolean;
+  };
+  poolKey: InquiryPoolKey;
 }
 
 export type CurationMap = Record<string, string[]>;

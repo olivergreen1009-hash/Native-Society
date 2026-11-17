@@ -15,7 +15,7 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "Native Society",
-  description: "New York Born. Personally Connected.",
+  description: "New York Born. Introduced Well.",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${cormorant.variable} ${outfit.variable}`}>
-      <body className="font-outfit bg-[#0c0c0c] text-[#f4efe6]">
+      <body className="bg-ns-bg text-ns-cream">
         {children}
       </body>
     </html>

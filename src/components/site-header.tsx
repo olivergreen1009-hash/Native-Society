@@ -27,26 +27,29 @@ export function SiteHeader({ variant = "public" }: { variant?: "public" | "app" 
     window.location.href = "/";
   };
 
+  const navLink =
+    "font-heading text-[1.05rem] text-ns-muted transition hover:text-white sm:text-[1.125rem]";
+
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-ns-border bg-[#0c0c0c]/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
-        <Link href="/" className="font-heading text-xl tracking-[0.12em] text-ns-cream md:text-2xl">
+    <header className="fixed top-0 z-50 w-full border-b border-ns-border bg-ns-bg/95 backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-5 sm:h-[4.5rem] sm:px-8">
+        <Link
+          href="/"
+          className="font-heading text-xl tracking-[0.04em] text-ns-cream sm:text-[1.35rem]"
+        >
           Native Society
         </Link>
-        <nav className="flex items-center gap-4 text-sm text-ns-muted md:gap-8">
+        <nav className="flex items-center gap-4 sm:gap-7">
           {variant === "public" ? (
             <>
-              <a href="#concept" className="hidden hover:text-ns-cream sm:inline">
-                Concept
+              <a href="#how-it-works" className={`hidden sm:inline ${navLink}`}>
+                How it works
               </a>
-              <a href="#gallery" className="hidden hover:text-ns-cream sm:inline">
-                Gallery
+              <a href="#examples" className={`hidden sm:inline ${navLink}`}>
+                Examples
               </a>
-              <a href="#membership" className="hidden hover:text-ns-cream md:inline">
-                Membership
-              </a>
-              <a href="#inquiry" className="hidden hover:text-ns-cream md:inline">
-                Inquiry
+              <a href="#apply" className="club-btn-apply px-4 py-2 text-sm sm:px-5 sm:text-base">
+                Apply
               </a>
             </>
           ) : (
@@ -56,7 +59,7 @@ export function SiteHeader({ variant = "public" }: { variant?: "public" | "app" 
                   <Link
                     href="/admin"
                     className={
-                      pathname === "/admin" ? "text-ns-gold" : "hover:text-ns-cream"
+                      pathname === "/admin" ? "text-ns-gold" : navLink
                     }
                   >
                     Admin
@@ -64,9 +67,7 @@ export function SiteHeader({ variant = "public" }: { variant?: "public" | "app" 
                   <Link
                     href="/admin/emails"
                     className={
-                      pathname.startsWith("/admin/emails")
-                        ? "text-ns-gold"
-                        : "hover:text-ns-cream"
+                      pathname.startsWith("/admin/emails") ? "text-ns-gold" : navLink
                     }
                   >
                     Emails
@@ -75,13 +76,13 @@ export function SiteHeader({ variant = "public" }: { variant?: "public" | "app" 
               )}
               <Link
                 href="/member/dashboard"
-                className={pathname === "/member/dashboard" ? "text-ns-gold" : "hover:text-ns-cream"}
+                className={pathname === "/member/dashboard" ? "text-ns-gold" : navLink}
               >
                 Dashboard
               </Link>
               <Link
                 href="/member/gallery"
-                className={pathname.startsWith("/member/gallery") ? "text-ns-gold" : "hover:text-ns-cream"}
+                className={pathname.startsWith("/member/gallery") ? "text-ns-gold" : navLink}
               >
                 Gallery
               </Link>
@@ -91,16 +92,13 @@ export function SiteHeader({ variant = "public" }: { variant?: "public" | "app" 
             <button
               type="button"
               onClick={signOut}
-              className="rounded-full border border-ns-border px-4 py-1.5 text-xs uppercase tracking-widest text-ns-cream transition hover:border-ns-gold hover:text-ns-gold"
+              className={`${navLink} hidden sm:inline`}
             >
               Sign out
             </button>
           ) : (
-            <Link
-              href="/login"
-              className="rounded-full border border-ns-gold/60 px-4 py-1.5 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
-            >
-              Member sign in
+            <Link href="/login" className={`${navLink} hidden md:inline`}>
+              Sign in
             </Link>
           )}
         </nav>
