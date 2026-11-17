@@ -38,7 +38,7 @@ export default async function ApplicationStatusPage({
   const params = await searchParams;
 
   let status: ApplicationStatus = "pending";
-  let applicationId = params.id ?? "demo";
+  let applicationId = params.id ?? "";
 
   if (params.demo && params.demo in demoCopy) {
     status = params.demo;
@@ -56,7 +56,9 @@ export default async function ApplicationStatusPage({
         <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Application</p>
         <h1 className="font-heading mt-4 text-4xl">{copy.title}</h1>
         <p className="mt-6 text-sm leading-relaxed text-ns-muted">{copy.body}</p>
-        <p className="mt-4 text-xs text-ns-muted">Reference: {applicationId}</p>
+        {applicationId ? (
+          <p className="mt-4 text-xs text-ns-muted">Reference: {applicationId}</p>
+        ) : null}
         <div className="mt-10 flex flex-col items-center gap-3">
           {status === "approved" && (
             <Link
@@ -66,24 +68,6 @@ export default async function ApplicationStatusPage({
               Create account
             </Link>
           )}
-          <p className="text-xs text-ns-muted">
-            Demo states:{" "}
-            <Link href="?demo=pending" className="text-ns-gold">
-              pending
-            </Link>
-            {" · "}
-            <Link href="?demo=more_info_needed" className="text-ns-gold">
-              more info
-            </Link>
-            {" · "}
-            <Link href="?demo=approved" className="text-ns-gold">
-              approved
-            </Link>
-            {" · "}
-            <Link href="?demo=declined" className="text-ns-gold">
-              declined
-            </Link>
-          </p>
         </div>
       </main>
       <SiteFooter />

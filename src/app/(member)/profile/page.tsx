@@ -6,8 +6,8 @@ export default function ProfilePage() {
       <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">You</p>
       <h1 className="font-heading mt-3 text-4xl">Profile</h1>
       <p className="mt-4 text-sm text-ns-muted">
-        Visible only to approved members. Photo upload will connect to private storage
-        in a later phase.
+        Visible only to approved members. Photos are stored privately and shown only
+        within the club.
       </p>
       <ProfileEditor />
     </div>
