@@ -8,6 +8,27 @@ import type {
 
 const now = () => new Date().toISOString();
 
+const userAccountDefaults = {
+  pauseDiscovery: false,
+  accountStatus: "active" as const,
+  pendingDeletionRequestedAt: null,
+  suspendedAt: null,
+};
+
+const profileModerationDefaults = {
+  moderationStatus: "approved" as const,
+};
+
+const defaultNotifications = (userId: string) => ({
+  userId,
+  emailNewIntroductions: true,
+  emailMutualMatches: true,
+  emailMessages: true,
+  inAppNewIntroductions: true,
+  inAppMutualMatches: true,
+  inAppMessages: true,
+});
+
 export const DEMO_PASSWORD_MEMBER = "member2024";
 export const DEMO_PASSWORD_ADMIN = "admin2024";
 
@@ -29,6 +50,7 @@ const memberSeeds: Array<{
       approvedAt: now(),
       active: true,
       applicationId: null,
+      ...userAccountDefaults,
     },
     profile: {
       id: "profile-alexandra",
@@ -62,6 +84,7 @@ const memberSeeds: Array<{
       discoverable: true,
       completedOnboarding: true,
       updatedAt: now(),
+      ...profileModerationDefaults,
     },
     preferences: {
       userId: "user-alexandra",
@@ -82,6 +105,7 @@ const memberSeeds: Array<{
       approvedAt: now(),
       active: true,
       applicationId: null,
+      ...userAccountDefaults,
     },
     profile: {
       id: "profile-james",
@@ -110,6 +134,7 @@ const memberSeeds: Array<{
       discoverable: true,
       completedOnboarding: true,
       updatedAt: now(),
+      ...profileModerationDefaults,
     },
     preferences: {
       userId: "user-james",
@@ -130,6 +155,7 @@ const memberSeeds: Array<{
       approvedAt: now(),
       active: true,
       applicationId: null,
+      ...userAccountDefaults,
     },
     profile: {
       id: "profile-elena",
@@ -158,6 +184,7 @@ const memberSeeds: Array<{
       discoverable: true,
       completedOnboarding: true,
       updatedAt: now(),
+      ...profileModerationDefaults,
     },
     preferences: {
       userId: "user-elena",
@@ -178,6 +205,7 @@ const memberSeeds: Array<{
       approvedAt: now(),
       active: true,
       applicationId: null,
+      ...userAccountDefaults,
     },
     profile: {
       id: "profile-michael",
@@ -206,6 +234,7 @@ const memberSeeds: Array<{
       discoverable: true,
       completedOnboarding: true,
       updatedAt: now(),
+      ...profileModerationDefaults,
     },
     preferences: {
       userId: "user-michael",
@@ -226,6 +255,7 @@ const memberSeeds: Array<{
       approvedAt: now(),
       active: true,
       applicationId: null,
+      ...userAccountDefaults,
     },
     profile: {
       id: "profile-sophie",
@@ -254,6 +284,7 @@ const memberSeeds: Array<{
       discoverable: true,
       completedOnboarding: true,
       updatedAt: now(),
+      ...profileModerationDefaults,
     },
     preferences: {
       userId: "user-sophie",
@@ -302,6 +333,7 @@ export function ensureSeeded(): void {
     stripeCustomerId: null,
     subscriptionStatus: "none",
     planId: null,
+    ...userAccountDefaults,
   };
 
   const demoAdmin: User = {
@@ -313,6 +345,7 @@ export function ensureSeeded(): void {
     approvedAt: now(),
     active: true,
     applicationId: null,
+    ...userAccountDefaults,
   };
 
   fresh.applications.set(demoMemberApplication.id, demoMemberApplication);
@@ -348,6 +381,7 @@ export function ensureSeeded(): void {
     discoverable: true,
     completedOnboarding: true,
     updatedAt: now(),
+    ...profileModerationDefaults,
   });
 
   fresh.preferences.set(DEMO_MEMBER_ID, {
@@ -389,4 +423,68 @@ export function ensureSeeded(): void {
     createdAt: now(),
   });
   fresh.messages.push(...messagesSeed);
+
+  const pendingApplication: Application = {
+    id: "app-pending-noah",
+    userId: null,
+    fullName: "Noah Klein",
+    email: "noah.klein@example.com",
+    dateOfBirth: "1994-08-02",
+    location: "Brooklyn",
+    nycUpbringing: "Park Slope; summers in Southampton",
+    schoolHistory: "Poly Prep → Bowdoin",
+    relationshipIntention: "long_term",
+    referralSource: "Member referral",
+    status: "pending",
+    adminNotes: "",
+    submittedAt: now(),
+    updatedAt: now(),
+  };
+  fresh.applications.set(pendingApplication.id, pendingApplication);
+
+  const moreInfoApplication: Application = {
+    id: "app-moreinfo-sarah",
+    userId: null,
+    fullName: "Sarah Whitfield",
+    email: "sarah.whitfield@example.com",
+    dateOfBirth: "1991-01-19",
+    location: "Manhattan",
+    nycUpbringing: "UES",
+    schoolHistory: "Nightingale",
+    relationshipIntention: "marriage_minded",
+    referralSource: "Website",
+    status: "more_info_needed",
+    adminNotes: "Please confirm boarding school attendance.",
+    submittedAt: now(),
+    updatedAt: now(),
+  };
+  fresh.applications.set(moreInfoApplication.id, moreInfoApplication);
+
+  const flaggedProfile = fresh.profiles.get("profile-michael");
+  if (flaggedProfile) {
+    fresh.profiles.set(flaggedProfile.id, {
+      ...flaggedProfile,
+      moderationStatus: "flagged",
+    });
+  }
+
+  fresh.reports.push({
+    id: "report-demo-1",
+    reporterId: DEMO_MEMBER_ID,
+    reportedUserId: "user-sophie",
+    reason: "misrepresentation",
+    detail: "Photos may not be current (demo report).",
+    status: "open",
+    adminNote: "",
+    createdAt: now(),
+    resolvedAt: null,
+  });
+
+  for (const uid of [
+    DEMO_MEMBER_ID,
+    DEMO_ADMIN_ID,
+    ...memberSeeds.map((m) => m.user.id),
+  ]) {
+    fresh.notificationPreferences.set(uid, defaultNotifications(uid));
+  }
 }

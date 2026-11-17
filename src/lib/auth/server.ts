@@ -16,6 +16,7 @@ import {
   userDisplayName,
   type SessionPayload,
 } from "./session";
+import { canSignIn } from "@/lib/membership/visibility";
 
 export async function getServerSession(): Promise<SessionPayload | null> {
   const jar = await cookies();
@@ -34,13 +35,15 @@ export async function authenticatePassword(
 
   const normalized = email.trim().toLowerCase();
   if (normalized === "member@nativesociety.nyc") {
-    return password === DEMO_PASSWORD_MEMBER ? user : null;
+    return password === DEMO_PASSWORD_MEMBER && canSignIn(user) ? user : null;
   }
   if (normalized === "admin@nativesociety.nyc") {
-    return password === DEMO_PASSWORD_ADMIN ? user : null;
+    return password === DEMO_PASSWORD_ADMIN && canSignIn(user) ? user : null;
   }
 
-  if (user.passwordHash && user.passwordHash === password) return user;
+  if (user.passwordHash && user.passwordHash === password) {
+    return canSignIn(user) ? user : null;
+  }
   return null;
 }
 
@@ -60,6 +63,10 @@ export async function registerMember(input: {
     approvedAt: null,
     active: true,
     applicationId: input.applicationId ?? null,
+    pauseDiscovery: false,
+    accountStatus: "active",
+    pendingDeletionRequestedAt: null,
+    suspendedAt: null,
   });
 }
 
@@ -91,6 +98,10 @@ export async function consumeMagicLink(token: string): Promise<User | null> {
       approvedAt: null,
       active: true,
       applicationId: null,
+      pauseDiscovery: false,
+      accountStatus: "active",
+      pendingDeletionRequestedAt: null,
+      suspendedAt: null,
     });
   }
   db.magicLinks = db.magicLinks.filter((m) => m.token !== token);

@@ -6,6 +6,7 @@ import type {
   MagicLinkToken,
   Match,
   Message,
+  NotificationPreferences,
   Preferences,
   Profile,
   RecommendationBatch,
@@ -18,6 +19,7 @@ export interface MemoryDatabase {
   applications: Map<string, Application>;
   profiles: Map<string, Profile>;
   preferences: Map<string, Preferences>;
+  notificationPreferences: Map<string, NotificationPreferences>;
   batches: Map<string, RecommendationBatch>;
   interests: InterestRecord[];
   matches: Match[];
@@ -40,6 +42,7 @@ function createEmptyDb(): MemoryDatabase {
     applications: new Map(),
     profiles: new Map(),
     preferences: new Map(),
+    notificationPreferences: new Map(),
     batches: new Map(),
     interests: [],
     matches: [],

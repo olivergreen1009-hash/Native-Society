@@ -31,6 +31,8 @@ export interface UserBillingFields {
   planId?: string | null;
 }
 
+export type AccountStatus = "active" | "suspended" | "removed" | "pending_deletion";
+
 export interface User extends UserBillingFields {
   id: string;
   email: string;
@@ -40,7 +42,30 @@ export interface User extends UserBillingFields {
   approvedAt: string | null;
   active: boolean;
   applicationId: string | null;
+  /** Member-controlled: hidden from new batches (viewer + candidate). */
+  pauseDiscovery: boolean;
+  accountStatus: AccountStatus;
+  pendingDeletionRequestedAt: string | null;
+  suspendedAt: string | null;
 }
+
+export interface NotificationPreferences {
+  userId: string;
+  emailNewIntroductions: boolean;
+  emailMutualMatches: boolean;
+  emailMessages: boolean;
+  inAppNewIntroductions: boolean;
+  inAppMutualMatches: boolean;
+  inAppMessages: boolean;
+}
+
+export type ProfileModerationStatus =
+  | "approved"
+  | "pending_review"
+  | "hidden"
+  | "flagged";
+
+export type ReportStatus = "open" | "dismissed" | "escalated";
 
 export interface Application {
   id: string;
@@ -85,6 +110,7 @@ export interface Profile {
   neighborhood: string;
   discoverable: boolean;
   completedOnboarding: boolean;
+  moderationStatus: ProfileModerationStatus;
   updatedAt: string;
 }
 
@@ -143,7 +169,16 @@ export interface Report {
   reportedUserId: string;
   reason: ReportReason;
   detail: string;
+  status: ReportStatus;
+  adminNote: string;
   createdAt: string;
+  resolvedAt: string | null;
+}
+
+export interface CandidateExclusionReason {
+  userId: string;
+  firstName: string;
+  reasons: string[];
 }
 
 export interface AdminAction {

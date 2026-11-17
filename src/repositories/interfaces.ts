@@ -10,6 +10,10 @@ import type {
   RecommendationBatch,
   Report,
   User,
+  NotificationPreferences,
+  ApplicationStatus,
+  ProfileModerationStatus,
+  ReportStatus,
 } from "@/types/domain";
 
 export interface UserRepository {
@@ -18,6 +22,7 @@ export interface UserRepository {
   create(user: Omit<User, "id" | "createdAt">): Promise<User>;
   update(id: string, patch: Partial<User>): Promise<User | null>;
   listActiveMembers(): Promise<User[]>;
+  listMembers(): Promise<User[]>;
 }
 
 export interface ApplicationRepository {
@@ -27,12 +32,16 @@ export interface ApplicationRepository {
     app: Omit<Application, "id" | "submittedAt" | "updatedAt" | "status" | "adminNotes">,
   ): Promise<Application>;
   update(id: string, patch: Partial<Application>): Promise<Application | null>;
+  listByStatus(status?: ApplicationStatus): Promise<Application[]>;
+  listAll(): Promise<Application[]>;
 }
 
 export interface ProfileRepository {
   findByUserId(userId: string): Promise<Profile | null>;
   findById(id: string): Promise<Profile | null>;
   listDiscoverable(): Promise<Profile[]>;
+  listAll(): Promise<Profile[]>;
+  listByModeration(status?: ProfileModerationStatus): Promise<Profile[]>;
   upsert(profile: Profile): Promise<Profile>;
 }
 
@@ -70,10 +79,22 @@ export interface BlockRepository {
   isBlocked(userA: string, userB: string): Promise<boolean>;
   listForUser(userId: string): Promise<Block[]>;
   create(block: Omit<Block, "id" | "createdAt">): Promise<Block>;
+  remove(id: string): Promise<boolean>;
+  listBlockedBy(userId: string): Promise<Block[]>;
+}
+
+export interface NotificationPreferencesRepository {
+  getByUserId(userId: string): Promise<NotificationPreferences>;
+  upsert(prefs: NotificationPreferences): Promise<NotificationPreferences>;
 }
 
 export interface ReportRepository {
-  create(report: Omit<Report, "id" | "createdAt">): Promise<Report>;
+  create(
+    report: Omit<Report, "id" | "createdAt" | "status" | "adminNote" | "resolvedAt">,
+  ): Promise<Report>;
+  listAll(): Promise<Report[]>;
+  listByStatus(status?: ReportStatus): Promise<Report[]>;
+  update(id: string, patch: Partial<Report>): Promise<Report | null>;
 }
 
 export interface AdminActionRepository {
