@@ -1,3 +1,11 @@
+/**
+ * Illustrative landing cards only — not real members.
+ *
+ * Portrait photos: committed under /public/examples/ (~800px wide, face crop).
+ * Licensed from Unsplash (https://unsplash.com/license); mood aligned with
+ * head-and-shoulders, soft studio light, quiet preppy polish (see
+ * project style reference: blonde-portrait-reference.pdf).
+ */
 export interface LandingExampleProfile {
   id: string;
   firstName: string;
@@ -28,8 +36,8 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     prompt:
       "A perfect Saturday: the farmers market, a new exhibition, and dinner somewhere I can walk to.",
     lookingFor: "Long-term partnership",
-    imageUrl:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80&fit=crop&crop=faces",
+    // Unsplash: Brooke Cagle / soft blonde head-and-shoulders (photo-1544005313)
+    imageUrl: "/examples/example-alexandra.jpg",
   },
   {
     id: "example-james",
@@ -42,8 +50,8 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     prompt:
       "I'm happiest at a long dinner with good conversation and no phones on the table.",
     lookingFor: "Long-term partnership",
-    imageUrl:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80&fit=crop&crop=faces",
+    // Unsplash: LinkedIn Sales Navigator / navy suit portrait (photo-1560250097)
+    imageUrl: "/examples/example-james.jpg",
   },
   {
     id: "example-charlotte",
@@ -56,8 +64,8 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     prompt:
       "I'll always say yes to a spontaneous trip somewhere with good food.",
     lookingFor: "Dating to see what happens",
-    imageUrl:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=800&q=80&fit=crop&crop=faces",
+    // Unsplash: Andrea Piacquadio / knit & quiet office light (photo-1487412720507)
+    imageUrl: "/examples/example-charlotte.jpg",
   },
   {
     id: "example-henry",
@@ -69,8 +77,8 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     interests: ["Cycling", "cooking", "jazz", "the occasional round of golf"],
     prompt: "I make a very good risotto and will absolutely cook for you.",
     lookingFor: "Long-term partnership",
-    imageUrl:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&q=80&fit=crop&crop=faces",
+    // Unsplash: Ayo Ogunseinde / open-collar, neutral backdrop (photo-1552374196)
+    imageUrl: "/examples/example-henry.jpg",
   },
   {
     id: "example-olivia",
@@ -83,8 +91,8 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     prompt:
       "I've been in this city my whole life and I'm still finding new places I love.",
     lookingFor: "Marriage-minded",
-    imageUrl:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80&fit=crop&crop=faces",
+    // Unsplash: Levi Guzman / confident studio headshot (photo-1554151228)
+    imageUrl: "/examples/example-olivia.jpg",
   },
 ];
 
