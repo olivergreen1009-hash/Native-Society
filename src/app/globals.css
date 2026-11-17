@@ -2,8 +2,10 @@
 
 @theme {
   --color-ns-bg: #0c0c0c;
-  --color-ns-cream: #f4efe6;
-  --color-ns-muted: #a39e94;
+  /* Primary readable copy on charcoal (was off-white cream) */
+  --color-ns-cream: #ffffff;
+  /* Supporting paragraphs & labels — same contrast on mobile */
+  --color-ns-muted: #ffffff;
   --color-ns-gold: #c9a96e;
   --color-ns-border: #2a2826;
   --color-ns-surface: #141414;
@@ -14,7 +16,7 @@
 
 body {
   background-color: var(--color-ns-bg);
-  color: var(--color-ns-cream);
+  color: #ffffff;
 }
 
 .font-heading {
