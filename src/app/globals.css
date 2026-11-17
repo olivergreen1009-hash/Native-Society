@@ -1,46 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ns-bg: #000000;
-  --color-ns-cream: #ffffff;
-  --color-ns-muted: #c8c4bc;
-  --color-ns-gold: #ebc94d;
-  --color-ns-gold-soft: #e2c04a33;
-  --color-ns-border: #1c1c1a;
-  --color-ns-surface: #070707;
-  --color-ns-elevated: #0e0e0d;
-  --font-heading: var(--font-cormorant), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --color-ns-bg: #0c0c0c;
+  --color-ns-cream: #f4efe6;
+  --color-ns-muted: #a39e94;
+  --color-ns-gold: #c9a96e;
+  --color-ns-border: #2a2826;
+  --color-ns-surface: #141414;
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-source);
 }
 
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-
-  body {
-    background-color: var(--color-ns-bg);
-    color: var(--color-ns-cream);
-    @apply font-sans text-base font-normal antialiased;
-    letter-spacing: 0.015em;
-  }
-
-  ::selection {
-    background-color: color-mix(in srgb, var(--color-ns-gold) 40%, transparent);
-    color: var(--color-ns-cream);
-  }
+body {
+  background-color: var(--color-ns-bg);
+  color: var(--color-ns-cream);
 }
 
-@layer utilities {
-  .club-rule-long {
-    @apply h-px w-full max-w-32 bg-gradient-to-r from-ns-gold/80 to-transparent;
-  }
-
-  .club-text-cta {
-    @apply font-heading inline-block border-b-2 border-ns-gold pb-1 text-lg text-ns-cream transition hover:text-ns-gold;
-  }
-
-  .club-btn-apply {
-    @apply font-heading inline-block border border-ns-gold bg-ns-gold/10 px-6 py-3 text-base text-ns-cream transition hover:bg-ns-gold/20;
-  }
+.font-heading {
+  font-family: var(--font-heading), Georgia, serif;
 }

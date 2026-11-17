@@ -1,55 +1,49 @@
 import Link from "next/link";
 
-const legal = [
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
-  { href: "/safety", label: "Safety" },
-  { href: "/contact", label: "Contact" },
-] as const;
-
 export function SiteFooter() {
   return (
-    <footer className="border-t border-ns-border bg-ns-surface">
-      <div className="mx-auto max-w-5xl px-5 py-14 sm:px-8 md:py-20">
-        <div className="h-px w-16 bg-ns-gold/60" />
-        <div className="mt-10 grid gap-10 md:grid-cols-[1fr_auto] md:gap-14">
-          <div>
-            <p className="font-heading text-2xl text-ns-cream">Native Society</p>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-ns-muted">
-              New York Born. Introduced Well. Application-only membership for adults
-              who grew up in the city and attended independent or boarding schools—no
-              public profiles, no casual browsing, no unsolicited messages.
-            </p>
-          </div>
-          <div className="text-base md:text-right">
-            <p className="font-heading text-ns-cream">Founded by Oliver Estreich</p>
-            <p className="mt-2 text-ns-muted">New York City</p>
-            <Link
-              href="/login"
-              className="mt-5 inline-block font-heading text-ns-gold transition hover:text-ns-cream"
-            >
-              Member sign in
-            </Link>
-          </div>
+    <footer className="border-t border-ns-border bg-ns-surface py-10 md:py-12">
+      <div className="mx-auto grid max-w-6xl gap-6 px-5 text-sm text-ns-muted md:grid-cols-3 md:gap-8 md:px-8">
+        <div>
+          <p className="font-heading text-lg text-ns-cream">Native Society</p>
+          <p className="mt-2 max-w-xs leading-relaxed md:mt-3">
+            Private introductions for adults raised in New York City with
+            independent and boarding school roots.
+          </p>
         </div>
-        <nav
-          className="mt-12 flex flex-wrap gap-x-6 gap-y-3 border-t border-ns-border pt-8 text-base"
-          aria-label="Legal and contact"
-        >
-          {legal.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-ns-muted transition hover:text-ns-gold"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex flex-col gap-2">
+          <p className="text-xs uppercase tracking-widest text-ns-gold">Legal</p>
+          <Link href="/privacy" className="hover:text-ns-cream">
+            Privacy
+          </Link>
+          <Link href="/terms" className="hover:text-ns-cream">
+            Terms
+          </Link>
+          <Link href="/safety" className="hover:text-ns-cream">
+            Safety
+          </Link>
+          <Link href="/contact" className="hover:text-ns-cream">
+            Contact
+          </Link>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-widest text-ns-gold">
+            Membership
+          </p>
+          <p className="mt-2 leading-relaxed md:mt-3">
+            Admission is human-reviewed. Apply once; we respond privately.
+          </p>
+          <Link
+            href="/apply"
+            className="mt-3 inline-flex min-h-11 items-center text-ns-gold hover:underline md:mt-4"
+          >
+            Begin application →
+          </Link>
+        </div>
       </div>
-      <div className="border-t border-ns-border px-5 py-5 text-center text-sm text-ns-muted sm:px-8">
-        © 2026 Native Society
-      </div>
+      <p className="mx-auto mt-8 max-w-6xl px-5 text-center text-xs text-ns-muted md:mt-10 md:px-8">
+        © {new Date().getFullYear()} Native Society. All rights reserved.
+      </p>
     </footer>
   );
 }

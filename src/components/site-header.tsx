@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SESSION_COOKIE, decodeSession } from "@/lib/auth";
+import { clearClientSession } from "@/lib/auth/client";
 
 function readClientSession() {
   if (typeof document === "undefined") return null;
@@ -14,7 +15,11 @@ function readClientSession() {
   return decodeSession(decodeURIComponent(match.split("=")[1] ?? ""));
 }
 
-export function SiteHeader({ variant = "public" }: { variant?: "public" | "app" }) {
+export function SiteHeader({
+  variant = "public",
+}: {
+  variant?: "public" | "member";
+}) {
   const pathname = usePathname();
   const [session, setSession] = useState<ReturnType<typeof readClientSession>>(null);
 
@@ -23,83 +28,92 @@ export function SiteHeader({ variant = "public" }: { variant?: "public" | "app" 
   }, [pathname]);
 
   const signOut = () => {
-    document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
+    clearClientSession();
     window.location.href = "/";
   };
 
-  const navLink =
-    "font-heading text-[1.05rem] text-ns-muted transition hover:text-white sm:text-[1.125rem]";
-
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-ns-border bg-ns-bg/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-5 sm:h-[4.5rem] sm:px-8">
+    <header className="fixed top-0 z-50 w-full border-b border-ns-border bg-ns-bg/85 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
         <Link
           href="/"
-          className="font-heading text-xl tracking-[0.04em] text-ns-cream sm:text-[1.35rem]"
+          className="font-heading text-xl tracking-[0.12em] text-ns-cream md:text-2xl"
         >
           Native Society
         </Link>
-        <nav className="flex items-center gap-4 sm:gap-7">
+        <nav className="flex items-center gap-3 text-sm text-ns-muted md:gap-6">
           {variant === "public" ? (
             <>
-              <a href="#how-it-works" className={`hidden sm:inline ${navLink}`}>
-                How it works
-              </a>
-              <a href="#examples" className={`hidden sm:inline ${navLink}`}>
-                Examples
-              </a>
-              <a href="#apply" className="club-btn-apply px-4 py-2 text-sm sm:px-5 sm:text-base">
+              <Link href="/login" className="hidden min-h-11 items-center hover:text-ns-cream sm:inline-flex">
+                Sign in
+              </Link>
+              <Link
+                href="/apply"
+                className="inline-flex min-h-11 items-center rounded-full border border-ns-gold/60 px-4 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
+              >
                 Apply
-              </a>
+              </Link>
             </>
           ) : (
             <>
+              <Link
+                href="/discover"
+                className={
+                  pathname.startsWith("/discover")
+                    ? "text-ns-gold"
+                    : "hover:text-ns-cream"
+                }
+              >
+                Discover
+              </Link>
+              <Link
+                href="/matches"
+                className={
+                  pathname.startsWith("/matches")
+                    ? "text-ns-gold"
+                    : "hover:text-ns-cream"
+                }
+              >
+                Matches
+              </Link>
+              <Link
+                href="/profile"
+                className={
+                  pathname === "/profile" ? "text-ns-gold" : "hover:text-ns-cream"
+                }
+              >
+                Profile
+              </Link>
+              <Link
+                href="/account"
+                className={
+                  pathname.startsWith("/account")
+                    ? "text-ns-gold"
+                    : "hover:text-ns-cream"
+                }
+              >
+                Account
+              </Link>
               {session?.role === "admin" && (
-                <>
-                  <Link
-                    href="/admin"
-                    className={
-                      pathname === "/admin" ? "text-ns-gold" : navLink
-                    }
-                  >
-                    Admin
-                  </Link>
-                  <Link
-                    href="/admin/emails"
-                    className={
-                      pathname.startsWith("/admin/emails") ? "text-ns-gold" : navLink
-                    }
-                  >
-                    Emails
-                  </Link>
-                </>
+                <Link
+                  href="/admin"
+                  className={
+                    pathname.startsWith("/admin")
+                      ? "text-ns-gold"
+                      : "hover:text-ns-cream"
+                  }
+                >
+                  Admin
+                </Link>
               )}
-              <Link
-                href="/member/dashboard"
-                className={pathname === "/member/dashboard" ? "text-ns-gold" : navLink}
+              <button
+                type="button"
+                onClick={signOut}
+                className="min-h-11 rounded-full border border-ns-border px-3 text-xs uppercase tracking-widest text-ns-cream transition hover:border-ns-gold"
               >
-                Dashboard
-              </Link>
-              <Link
-                href="/member/gallery"
-                className={pathname.startsWith("/member/gallery") ? "text-ns-gold" : navLink}
-              >
-                Gallery
-              </Link>
+                Sign out
+              </button>
             </>
-          )}
-          {session ? (
-            <button
-              type="button"
-              onClick={signOut}
-              className={`${navLink} hidden sm:inline`}
-            >
-              Sign out
-            </button>
-          ) : (
-            <Link href="/login" className={`${navLink} hidden md:inline`}>
-              Sign in
-            </Link>
           )}
         </nav>
       </div>

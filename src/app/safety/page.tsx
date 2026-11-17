@@ -4,14 +4,14 @@ export default function SafetyPage() {
   return (
     <LegalDocument title="Safety">
       <p>
-        Messaging is available only after documented mutual interest. There is no public
-        activity feed, open inbox, or unsolicited contact.
+        Report concerns from any introduction card or contact the team at the address
+        listed on the contact page. We review reports privately and may remove members
+        who violate club standards.
       </p>
       <p>
-        Report concerns from within the product or via Contact. We review reports and may
-        suspend accounts that violate community standards.
+        Never share financial information or send money to someone you meet through the
+        club.
       </p>
-      <p>Detailed safety practices will be published before public launch.</p>
     </LegalDocument>
   );
 }
