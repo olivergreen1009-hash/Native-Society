@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LandingExampleProfiles } from "@/components/landing-example-profiles";
 
 const included = [
   "Human review of every application",
@@ -37,44 +38,51 @@ const steps = [
   },
 ];
 
+const ctaButtonClass =
+  "inline-flex min-h-11 items-center justify-center rounded-full px-8 text-sm font-medium uppercase tracking-widest transition md:px-10";
+
 export function LandingPage() {
   return (
     <div className="pt-16">
-      <section className="mx-auto max-w-6xl px-5 pb-20 pt-16 md:px-8 md:pt-24">
+      {/* Hero — tighter vertical rhythm on mobile */}
+      <section className="mx-auto max-w-6xl px-5 pb-10 pt-10 md:px-8 md:pb-20 md:pt-24">
         <p className="text-xs uppercase tracking-[0.35em] text-ns-gold">
           Invitation only · NYC
         </p>
-        <h1 className="font-heading mt-6 max-w-3xl text-4xl leading-tight md:text-6xl">
+        <h1 className="font-heading mt-3 max-w-3xl text-[1.75rem] leading-tight md:mt-6 md:text-6xl">
           Dating for those who grew up in the city—and in its schools.
         </h1>
-        <p className="mt-6 max-w-2xl text-base leading-relaxed text-ns-muted md:text-lg">
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-ns-muted md:mt-6 md:text-lg">
           Native Society is a private members’ introduction club for adults raised in
           New York City who attended independent private or boarding school. No
           public profiles. No endless scrolling. Just considered introductions,
           refreshed weekly.
         </p>
-        <div className="mt-10">
+        <div className="mt-6 md:mt-10">
           <Link
             href="/apply"
-            className="inline-block rounded-full bg-ns-gold px-10 py-3 text-sm font-medium uppercase tracking-widest text-ns-bg transition hover:bg-ns-cream"
+            className={`${ctaButtonClass} bg-ns-gold text-ns-bg hover:bg-ns-cream`}
           >
             Apply for membership
           </Link>
         </div>
       </section>
 
-      <section className="border-t border-ns-border bg-ns-surface py-16 md:py-24">
+      {/* How it works */}
+      <section className="border-t border-ns-border bg-ns-surface py-10 md:py-24">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
-          <h2 className="font-heading text-3xl">How it works</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+          <h2 className="font-heading text-2xl md:text-3xl">How it works</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 md:mt-10 md:gap-6 lg:grid-cols-5">
             {steps.map((step, index) => (
               <article
                 key={step.title}
-                className="rounded border border-ns-border bg-ns-bg/50 p-6"
+                className="rounded border border-ns-border bg-ns-bg/50 p-4 md:p-6"
               >
                 <span className="text-xs text-ns-gold">0{index + 1}</span>
-                <h3 className="font-heading mt-3 text-lg">{step.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-ns-muted">
+                <h3 className="font-heading mt-2 text-base md:mt-3 md:text-lg">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-sm leading-snug text-ns-muted md:mt-3 md:leading-relaxed">
                   {step.body}
                 </p>
               </article>
@@ -83,24 +91,28 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="border-t border-ns-border py-16 md:py-24">
-        <div className="mx-auto grid max-w-6xl gap-12 px-5 md:grid-cols-2 md:px-8">
+      <LandingExampleProfiles />
+
+      {/* Included / not included */}
+      <section className="border-t border-ns-border py-10 md:py-24">
+        <div className="mx-auto grid max-w-6xl gap-6 px-5 md:grid-cols-2 md:gap-12 md:px-8">
           <BulletList title="Included" items={included} />
           <BulletList title="Not in phase 1" items={notIncluded} muted />
         </div>
       </section>
 
-      <section className="border-t border-ns-border bg-ns-surface py-16 text-center md:py-20">
+      {/* Final CTA */}
+      <section className="border-t border-ns-border bg-ns-surface py-10 text-center md:py-20">
         <div className="mx-auto max-w-xl px-5 md:px-8">
-          <h2 className="font-heading text-3xl">Ready when you are</h2>
-          <p className="mt-4 text-sm leading-relaxed text-ns-muted">
+          <h2 className="font-heading text-2xl md:text-3xl">Ready when you are</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ns-muted md:mt-4">
             One application. Private review. If approved, you&apos;ll receive sign-in
             instructions to complete your profile and join the weekly introduction
             cycle.
           </p>
           <Link
             href="/apply"
-            className="mt-8 inline-block rounded-full border border-ns-gold px-10 py-3 text-sm uppercase tracking-widest text-ns-gold hover:bg-ns-gold hover:text-ns-bg"
+            className={`${ctaButtonClass} mt-6 border border-ns-gold text-ns-gold hover:bg-ns-gold hover:text-ns-bg md:mt-8`}
           >
             Apply
           </Link>
@@ -121,12 +133,12 @@ function BulletList({
 }) {
   return (
     <div>
-      <h2 className="font-heading text-2xl">{title}</h2>
+      <h2 className="font-heading text-xl md:text-2xl">{title}</h2>
       <ul
-        className={`mt-6 space-y-3 text-sm ${muted ? "text-ns-muted" : "text-ns-cream"}`}
+        className={`mt-4 space-y-2 text-sm md:mt-6 md:space-y-3 ${muted ? "text-ns-muted" : "text-ns-cream"}`}
       >
         {items.map((item) => (
-          <li key={item} className="flex gap-3">
+          <li key={item} className="flex gap-2 md:gap-3">
             <span className="text-ns-gold">—</span>
             {item}
           </li>

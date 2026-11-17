@@ -38,7 +38,7 @@ export function LandingSections() {
 
   return (
     <>
-      <section className="relative flex min-h-[92vh] items-end overflow-hidden pt-16">
+      <section className="relative flex min-h-[72vh] items-end overflow-hidden pt-16 md:min-h-[92vh]">
         <Image
           src="https://images.unsplash.com/photo-1600607686527-6fb8860908d1?w=1920&q=80"
           alt="Evening light in a private Manhattan club interior"
@@ -48,7 +48,7 @@ export function LandingSections() {
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ns-bg/95 via-ns-bg/55 to-ns-bg/25" />
-        <div className="relative mx-auto w-full max-w-6xl px-5 pb-20 md:px-8 md:pb-28">
+        <div className="relative mx-auto w-full max-w-6xl px-5 pb-12 md:px-8 md:pb-28">
           <p className="text-xs uppercase tracking-[0.35em] text-ns-gold">
             Invitation only
           </p>
@@ -133,13 +133,13 @@ export function LandingSections() {
             Illustrative sample only—not a live member gallery. Full profiles appear
             after your request is accepted.
           </p>
-          <div className="mt-10 grid gap-8 md:grid-cols-2">
+          <div className="mt-6 grid grid-cols-2 gap-2.5 md:mt-10 md:grid-cols-2 md:gap-8">
             {mockProfiles.map((profile) => (
               <article
                 key={profile.id}
                 className="group overflow-hidden rounded border border-ns-border bg-ns-surface"
               >
-                <div className="relative aspect-[4/5] overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden md:aspect-[4/5]">
                   <Image
                     src={profile.imageUrl}
                     alt=""

@@ -51,7 +51,7 @@ export function ApplyForm() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="mt-10 space-y-5">
+    <form onSubmit={onSubmit} className="mt-6 space-y-3.5 md:mt-10 md:space-y-5">
       {error && <p className="text-sm text-red-400">{error}</p>}
       <FormField label="Full name" name="fullName" required />
       <FormField label="Email" name="email" type="email" required />
@@ -96,7 +96,7 @@ export function ApplyForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-full bg-ns-gold py-3 text-sm font-medium uppercase tracking-widest text-ns-bg hover:bg-ns-cream disabled:opacity-60"
+        className="min-h-11 w-full rounded-full bg-ns-gold py-3 text-sm font-medium uppercase tracking-widest text-ns-bg hover:bg-ns-cream disabled:opacity-60"
       >
         {loading ? "Submitting…" : "Submit application"}
       </button>
