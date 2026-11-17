@@ -93,6 +93,20 @@ export const landingExampleProfiles: LandingExampleProfile[] = [
     // AI illustrative — outdoor café, silk blouse, tree-lined street
     imageUrl: "/examples/example-olivia.jpg",
   },
+  {
+    id: "example-daniel",
+    firstName: "Daniel",
+    age: 33,
+    neighborhood: "Cobble Hill",
+    schoolLine: "Collegiate → Columbia",
+    summerDestination: "Maine coast",
+    interests: ["Running", "fiction", "farmers markets", "weekend trips to the shore"],
+    prompt:
+      "I moved to Brooklyn for the brownstones and stayed for the people who know their butcher by name.",
+    lookingFor: "Marriage-minded",
+    // AI illustrative — cable knit, brownstone stoop, overcast Brooklyn
+    imageUrl: "/examples/example-daniel.jpg",
+  },
 ];
 
 const ROTATION_SIZE = 4;

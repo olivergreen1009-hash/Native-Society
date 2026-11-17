@@ -21,7 +21,7 @@ export function LandingExampleProfiles() {
           selection, not a public gallery.
         </p>
         <ul
-          className="mt-4 grid list-none grid-cols-2 gap-2.5 sm:grid-cols-3 md:mt-8 md:gap-4 lg:grid-cols-5"
+          className="mt-4 grid list-none grid-cols-2 gap-2.5 sm:grid-cols-3 md:mt-8 md:gap-4 lg:grid-cols-6"
           aria-label="Illustrative example member cards"
         >
           {landingExampleProfiles.map((profile) => (
