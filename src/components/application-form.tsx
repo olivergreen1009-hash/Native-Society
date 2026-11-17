@@ -67,9 +67,8 @@ export function ApplicationForm() {
     () => (dateOfBirth ? ageFromDateOfBirth(dateOfBirth) : null),
     [dateOfBirth],
   );
-  const cohort = age !== null ? admissionCohort(age) : null;
   const under18 = age !== null && age < 18;
-  const outsideCohort = cohort === "outside_cohort";
+  const outsideCohort = age !== null && admissionCohort(age) === "outside_cohort";
   const maxDay = daysInMonth(dobMonth, dobYear);
   const dayOptions = Array.from({ length: maxDay }, (_, i) => String(i + 1));
   const yearOptions = Array.from({ length: 80 }, (_, i) =>
