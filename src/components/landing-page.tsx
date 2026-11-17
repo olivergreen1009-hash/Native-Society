@@ -8,13 +8,6 @@ const included = [
   "Private profiles visible only to approved members",
 ];
 
-const notIncluded = [
-  "Public browsing or swipe mechanics",
-  "Activity metrics or popularity scores",
-  "Events, concierge, or tiered memberships (phase 1)",
-  "Video, voice, or AI matching interfaces",
-];
-
 const steps = [
   {
     title: "Apply",
@@ -93,11 +86,9 @@ export function LandingPage() {
 
       <LandingExampleProfiles />
 
-      {/* Included / not included */}
       <section className="border-t border-ns-border py-10 md:py-24">
-        <div className="mx-auto grid max-w-6xl gap-6 px-5 md:grid-cols-2 md:gap-12 md:px-8">
+        <div className="mx-auto max-w-6xl px-5 md:px-8">
           <BulletList title="Included" items={included} />
-          <BulletList title="Not in phase 1" items={notIncluded} muted />
         </div>
       </section>
 
@@ -122,21 +113,11 @@ export function LandingPage() {
   );
 }
 
-function BulletList({
-  title,
-  items,
-  muted,
-}: {
-  title: string;
-  items: string[];
-  muted?: boolean;
-}) {
+function BulletList({ title, items }: { title: string; items: string[] }) {
   return (
     <div>
       <h2 className="font-heading text-xl md:text-2xl">{title}</h2>
-      <ul
-        className={`mt-4 space-y-2 text-sm md:mt-6 md:space-y-3 ${muted ? "text-ns-muted" : "text-ns-cream"}`}
-      >
+      <ul className="mt-4 space-y-2 text-sm text-ns-cream md:mt-6 md:space-y-3">
         {items.map((item) => (
           <li key={item} className="flex gap-2 md:gap-3">
             <span className="text-ns-gold">—</span>

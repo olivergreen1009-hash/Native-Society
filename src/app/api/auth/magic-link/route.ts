@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   const demoUrl = `/login?magic=${encodeURIComponent(token)}`;
   return NextResponse.json({
     ok: true,
-    message: "Magic link created (demo)",
+    message: "Sign-in link created",
     demoUrl,
     token,
   });

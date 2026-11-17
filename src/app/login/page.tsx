@@ -7,11 +7,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { setClientSession } from "@/lib/auth/client";
 import { accountToSession, authenticate } from "@/lib/auth";
-import {
-  DEMO_PASSWORD_ADMIN,
-  DEMO_PASSWORD_MEMBER,
-} from "@/data/seed";
-
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,6 +15,7 @@ function LoginForm() {
   const [mode, setMode] = useState<"password" | "magic">("password");
   const [error, setError] = useState("");
   const [magicInfo, setMagicInfo] = useState("");
+  const [magicHref, setMagicHref] = useState("");
 
   useEffect(() => {
     if (!magicToken) return;
@@ -71,13 +67,17 @@ function LoginForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, mode: "request" }),
     });
-    const json = (await res.json()) as { demoUrl?: string; token?: string };
+    const json = (await res.json()) as { demoUrl?: string; message?: string };
     if (!res.ok) {
-      setError("Unable to send link in demo mode.");
+      setError("Unable to send sign-in link. Try again or use your password.");
       return;
     }
+    setMagicHref(json.demoUrl ?? "");
     setMagicInfo(
-      `Demo: open ${json.demoUrl ?? "/login"} to complete sign-in (token ${json.token?.slice(0, 8)}…).`,
+      json.demoUrl
+        ? "Your sign-in link is ready."
+        : (json.message ??
+            "If this email is on file, you'll receive a sign-in link shortly."),
     );
   };
 
@@ -120,9 +120,14 @@ function LoginForm() {
         <form onSubmit={onMagic} className="mt-8 space-y-5">
           {error && <p className="text-sm text-red-400">{error}</p>}
           {magicInfo && (
-            <p className="rounded border border-ns-gold/30 bg-ns-surface p-4 text-xs text-ns-cream">
-              {magicInfo}
-            </p>
+            <div className="rounded border border-ns-gold/30 bg-ns-surface p-4 text-xs text-ns-cream">
+              <p>{magicInfo}</p>
+              {magicHref ? (
+                <Link href={magicHref} className="mt-2 inline-block text-ns-gold hover:underline">
+                  Continue to sign in
+                </Link>
+              ) : null}
+            </div>
           )}
           <Field label="Email" name="email" type="email" />
           <button
@@ -134,12 +139,10 @@ function LoginForm() {
         </form>
       )}
 
-      <div className="mt-10 rounded border border-ns-border bg-ns-surface p-5 text-xs text-ns-muted">
-        <p className="text-ns-cream">Demo credentials</p>
-        <p className="mt-2">member@nativesociety.nyc / {DEMO_PASSWORD_MEMBER}</p>
-        <p>admin@nativesociety.nyc / {DEMO_PASSWORD_ADMIN}</p>
-      </div>
-      <p className="mt-8 text-center text-sm text-ns-muted">
+      <p className="mt-10 text-center text-sm text-ns-muted">
+        Use the email and password from your approval email.
+      </p>
+      <p className="mt-4 text-center text-sm text-ns-muted">
         No account?{" "}
         <Link href="/signup" className="text-ns-gold hover:underline">
           Sign up
