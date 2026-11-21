@@ -1,73 +1,120 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { SESSION_COOKIE, decodeSession } from "@/lib/auth";
-import { getIntroductions } from "@/lib/client-store";
-import { DEMO_MEMBER, societyProfiles } from "@/lib/sample-data";
-import type { IntroductionRequest } from "@/lib/types";
+import { useCallback, useEffect, useState } from "react";
+import {
+  INTRODUCTION_STATE_LABELS,
+  type IntroductionProposal,
+} from "@/types/society";
 
-export default function IntroductionsPage() {
-  const [items, setItems] = useState<IntroductionRequest[]>([]);
+export default function ProposedIntroductionsPage() {
+  const [items, setItems] = useState<IntroductionProposal[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch("/api/member/proposals");
+    const json = (await res.json()) as {
+      proposals?: IntroductionProposal[];
+      error?: string;
+    };
+    if (!res.ok) {
+      setError(json.error ?? "Could not load proposals.");
+      setItems([]);
+    } else {
+      setError("");
+      setItems(json.proposals ?? []);
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    const match = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith(`${SESSION_COOKIE}=`));
-    const session = match
-      ? decodeSession(decodeURIComponent(match.split("=")[1] ?? ""))
-      : null;
-    const memberId = session?.userId ?? DEMO_MEMBER.id;
-    setItems(getIntroductions().filter((i) => i.memberId === memberId));
-  }, []);
+    void load();
+  }, [load]);
+
+  const respond = async (
+    proposalId: string,
+    response: "accepted" | "declined",
+  ) => {
+    const res = await fetch("/api/member/proposals", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proposalId, response }),
+    });
+    if (!res.ok) {
+      const json = (await res.json()) as { error?: string };
+      setError(json.error ?? "Could not save your response.");
+      return;
+    }
+    await load();
+  };
 
   return (
     <div className="mx-auto max-w-3xl px-5 md:px-8">
-      <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Introductions</p>
-      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Your requests</h1>
+      <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">
+        Proposed introductions
+      </p>
+      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Your proposals</h1>
       <p className="mt-4 text-sm text-ns-muted">
-        Status updates appear here once curators advance your request.
+        Each proposal shows a limited profile and why meeting may be worthwhile. Accept
+        or decline privately—no contact details are shared unless both accept.
       </p>
 
-      {items.length === 0 ? (
+      {error && (
+        <p className="mt-4 text-sm text-red-400" role="alert">
+          {error}
+        </p>
+      )}
+
+      {loading ? (
+        <p className="mt-12 text-sm text-ns-muted">Loading…</p>
+      ) : items.length === 0 ? (
         <p className="mt-12 rounded border border-ns-border bg-ns-surface p-8 text-sm text-ns-muted">
-          No introduction requests yet. Visit your gallery when you are ready.
+          No active proposals. The founder will reach out when there is a clear reason for
+          an introduction.
         </p>
       ) : (
-        <ul className="mt-10 space-y-4">
-          {items.map((item) => {
-            const profile = societyProfiles.find((p) => p.id === item.profileId);
-            return (
+        <ul className="mt-10 space-y-6">
+          {items
+            .filter((p) => p.state !== "draft")
+            .map((item) => (
               <li
                 key={item.id}
                 className="rounded border border-ns-border bg-ns-surface p-6"
               >
-                <p className="font-heading text-xl text-ns-cream">
-                  {profile?.firstName ?? "Member"} · {statusLabel(item.status)}
+                <p className="text-xs uppercase tracking-widest text-ns-gold">
+                  {INTRODUCTION_STATE_LABELS[item.state]}
                 </p>
-                <p className="mt-2 text-xs text-ns-muted">
-                  Submitted {new Date(item.createdAt).toLocaleString()}
+                <p className="font-heading mt-2 text-xl text-ns-cream">
+                  {item.limitedProfileSnapshot.displayName}
                 </p>
-                <p className="mt-3 text-sm text-ns-muted">{item.message}</p>
+                <p className="mt-1 text-sm text-ns-muted">
+                  {item.limitedProfileSnapshot.headline}
+                </p>
+                <p className="mt-3 text-sm text-ns-cream">{item.reason}</p>
+                <p className="mt-2 text-xs text-ns-muted">{item.proposalText}</p>
+                {item.state === "awaiting_responses" && (
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void respond(item.id, "accepted")}
+                      className="rounded-full bg-ns-gold px-5 py-2 text-xs uppercase tracking-widest text-ns-bg"
+                    >
+                      Accept proposal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void respond(item.id, "declined")}
+                      className="rounded-full border border-ns-border px-5 py-2 text-xs uppercase tracking-widest text-ns-muted hover:text-ns-cream"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                )}
               </li>
-            );
-          })}
+            ))}
         </ul>
       )}
     </div>
   );
-}
-
-function statusLabel(status: IntroductionRequest["status"]): string {
-  switch (status) {
-    case "pending":
-      return "Awaiting curator";
-    case "mutual_confirmed":
-      return "Mutual interest confirmed";
-    case "coordinated":
-      return "Coordination in progress";
-    case "introduced":
-      return "Introduction facilitated";
-    default:
-      return status;
-  }
 }

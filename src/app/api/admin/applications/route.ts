@@ -41,11 +41,12 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (body.status === "approved") {
+  if (body.status === "invited_to_activate") {
     const existingUser = await repositories.users.findByEmail(updated.email);
     if (existingUser) {
       await repositories.users.update(existingUser.id, {
         approvedAt: new Date().toISOString(),
+        memberLifecycleState: "invited_to_activate",
       });
     }
   }

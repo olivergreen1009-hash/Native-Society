@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/server";
 import { repositories } from "@/repositories/memory";
 import type { AccountStatus } from "@/types/domain";
+import type { MemberLifecycleState } from "@/types/society";
 
 export async function GET() {
   const session = await getServerSession();
@@ -28,6 +29,7 @@ export async function PATCH(request: Request) {
     accountStatus?: AccountStatus;
     pauseDiscovery?: boolean;
     active?: boolean;
+    memberLifecycleState?: MemberLifecycleState;
   };
 
   const user = await repositories.users.findById(body.userId);
@@ -55,6 +57,13 @@ export async function PATCH(request: Request) {
     patch.pauseDiscovery = body.pauseDiscovery;
   }
   if (typeof body.active === "boolean") patch.active = body.active;
+  if (body.memberLifecycleState) {
+    patch.memberLifecycleState = body.memberLifecycleState;
+    if (body.memberLifecycleState === "active") {
+      patch.active = true;
+      patch.approvedAt = user.approvedAt ?? new Date().toISOString();
+    }
+  }
 
   const updated = await repositories.users.update(body.userId, patch);
 

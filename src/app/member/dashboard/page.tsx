@@ -2,20 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { SESSION_COOKIE, decodeSession } from "@/lib/auth";
 import { DEMO_MEMBER } from "@/lib/sample-data";
 import {
-  getCurationMap,
-  getIntroductions,
-  getFoundingQuestionnaire,
-} from "@/lib/client-store";
-import { SESSION_COOKIE, decodeSession } from "@/lib/auth";
+  MEMBER_LIFECYCLE_LABELS,
+  type MemberLifecycleState,
+} from "@/types/society";
 
 export default function MemberDashboardPage() {
-  const [stats, setStats] = useState({
-    galleryCount: 0,
-    intros: 0,
-    questionnaireDone: false,
-  });
+  const [lifecycle, setLifecycle] = useState<MemberLifecycleState>("active");
+  const [pendingProposals, setPendingProposals] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     const match = document.cookie
@@ -25,105 +22,67 @@ export default function MemberDashboardPage() {
       ? decodeSession(decodeURIComponent(match.split("=")[1] ?? ""))
       : null;
     const memberId = session?.userId ?? DEMO_MEMBER.id;
-    const curation = getCurationMap();
-    const intros = getIntroductions().filter((i) => i.memberId === memberId);
-    const q = getFoundingQuestionnaire(memberId);
-    setStats({
-      galleryCount: curation[memberId]?.length ?? 0,
-      intros: intros.length,
-      questionnaireDone: Boolean(q.submittedAt),
-    });
+
+    void (async () => {
+      const res = await fetch("/api/member/proposals");
+      if (!res.ok) return;
+      const json = (await res.json()) as {
+        lifecycle?: MemberLifecycleState;
+        pauseDiscovery?: boolean;
+        proposals?: { state: string }[];
+      };
+      if (json.lifecycle) setLifecycle(json.lifecycle);
+      setPaused(Boolean(json.pauseDiscovery));
+      const pending =
+        json.proposals?.filter((p) => p.state === "awaiting_responses").length ??
+        0;
+      setPendingProposals(pending);
+    })();
   }, []);
 
   return (
     <div className="mx-auto max-w-6xl px-5 md:px-8">
-      <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Member home</p>
-      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Your dashboard</h1>
+      <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Member</p>
+      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Your status</h1>
       <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ns-muted">
-        Welcome back. Your curator has refreshed your gallery this week. Review
-        compatibilities, complete your questionnaire, and request introductions
-        at your own pace.
+        {paused
+          ? "You are paused. New proposals are on hold; pending proposals follow the rules explained when you paused."
+          : "Native Society proposes introductions when there is a clear reason to meet. You decide on each proposal; contact is shared only after mutual acceptance."}
       </p>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-3">
-        <StatCard label="Gallery profiles" value={String(stats.galleryCount)} />
-        <StatCard label="Introduction requests" value={String(stats.intros)} />
-        <StatCard
-          label="Questionnaire"
-          value={stats.questionnaireDone ? "Complete" : "Pending"}
-        />
+      <div className="mt-10 grid gap-6 sm:grid-cols-2">
+        <div className="rounded border border-ns-border bg-ns-surface p-6">
+          <p className="text-xs uppercase tracking-widest text-ns-muted">Membership</p>
+          <p className="font-heading mt-2 text-2xl text-ns-gold">
+            {MEMBER_LIFECYCLE_LABELS[lifecycle]}
+          </p>
+        </div>
+        <div className="rounded border border-ns-border bg-ns-surface p-6">
+          <p className="text-xs uppercase tracking-widest text-ns-muted">
+            Proposals awaiting you
+          </p>
+          <p className="font-heading mt-2 text-2xl text-ns-gold">{pendingProposals}</p>
+        </div>
       </div>
 
-      <div className="mt-12 grid gap-4 md:grid-cols-2">
-        <ActionCard
-          title="Private Gallery"
-          body="View the profiles curated for you this month."
-          href="/member/gallery"
-          cta="Open gallery"
-        />
-        <ActionCard
-          title="Compatibility review"
-          body="Tell curators how you live in New York so introductions stay precise."
-          href="/member/questionnaire"
-          cta="Continue questionnaire"
-        />
-        <ActionCard
-          title="Your profile"
-          body="Update how fellow members will understand your lineage and rhythm."
-          href="/member/profile"
-          cta="Edit profile"
-        />
-        <ActionCard
-          title="Introductions"
-          body="Track pending requests and curator follow-up."
+      <div className="mt-12 rounded border border-ns-border bg-ns-bg/40 p-6">
+        <h2 className="font-heading text-xl text-ns-cream">Operating rules</h2>
+        <ul className="mt-4 space-y-2 text-sm text-ns-muted">
+          <li>— Each proposal includes a limited profile and a specific reason to meet.</li>
+          <li>— If you decline, the introduction closes with no contact shared.</li>
+          <li>— After mutual acceptance, the founder sends a joint introduction.</li>
+          <li>— Native Society does not promise access to capital or funding outcomes.</li>
+        </ul>
+      </div>
+
+      <div className="mt-8">
+        <Link
           href="/member/introductions"
-          cta="View requests"
-        />
+          className="inline-flex rounded-full border border-ns-gold px-6 py-3 text-xs uppercase tracking-widest text-ns-gold hover:bg-ns-gold hover:text-ns-bg"
+        >
+          View proposed introductions →
+        </Link>
       </div>
     </div>
   );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <Card className="rounded border border-ns-border bg-ns-surface p-6">
-      <p className="text-xs uppercase tracking-widest text-ns-muted">{label}</p>
-      <p className="font-heading mt-2 text-3xl text-ns-gold">{value}</p>
-    </Card>
-  );
-}
-
-function ActionCard({
-  title,
-  body,
-  href,
-  cta,
-}: {
-  title: string;
-  body: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <article className="flex flex-col rounded border border-ns-border bg-ns-surface p-6">
-      <h2 className="font-heading text-xl text-ns-cream">{title}</h2>
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-ns-muted">{body}</p>
-      <Link
-        href={href}
-        className="mt-6 inline-flex text-sm uppercase tracking-widest text-ns-gold hover:underline"
-      >
-        {cta} →
-      </Link>
-    </article>
-  );
-}
-
-function Card({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return <div className={className}>{children}</div>;
 }

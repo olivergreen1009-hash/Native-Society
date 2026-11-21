@@ -24,9 +24,10 @@ export async function POST(request: Request) {
       applicationId: application?.id ?? body.applicationId ?? null,
     });
 
-    if (application?.status === "approved") {
+    if (application?.status === "invited_to_activate") {
       await repositories.users.update(user.id, {
         approvedAt: new Date().toISOString(),
+        memberLifecycleState: "active",
       });
     }
 
