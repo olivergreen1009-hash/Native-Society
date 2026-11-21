@@ -6,9 +6,9 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-5 text-sm text-ns-muted md:grid-cols-3 md:px-8">
         <div>
           <p className="font-heading text-lg text-ns-cream">Native Society</p>
-          <p className="mt-3 max-w-xs leading-relaxed">
-            Private introductions for adults raised in New York City with
-            independent and boarding school roots.
+          <p className="mt-3 max-w-sm leading-relaxed">
+            A private, founder-led introduction service for people with substantive ties
+            to New York real estate and hospitality.
           </p>
         </div>
         <div className="flex flex-col gap-2">
@@ -19,22 +19,18 @@ export function SiteFooter() {
           <Link href="/terms" className="hover:text-ns-cream">
             Terms
           </Link>
-          <Link href="/safety" className="hover:text-ns-cream">
-            Safety
-          </Link>
           <Link href="/contact" className="hover:text-ns-cream">
             Contact
           </Link>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-widest text-ns-gold">
-            Membership
-          </p>
+          <p className="text-xs uppercase tracking-widest text-ns-gold">Membership</p>
           <p className="mt-3 leading-relaxed">
-            Admission is human-reviewed. Apply once; we respond privately.
+            Membership is paid and by invitation. No payment is collected with your
+            application.
           </p>
           <Link href="/apply" className="mt-4 inline-block text-ns-gold hover:underline">
-            Begin application →
+            Apply for consideration →
           </Link>
         </div>
       </div>

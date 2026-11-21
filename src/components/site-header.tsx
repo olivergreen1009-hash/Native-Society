@@ -32,6 +32,9 @@ export function SiteHeader({
     window.location.href = "/";
   };
 
+  const hideApplyCta =
+    pathname === "/apply" || pathname.startsWith("/application/");
+
   return (
     <header className="fixed top-0 z-50 w-full border-b border-ns-border bg-ns-bg/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
@@ -44,55 +47,56 @@ export function SiteHeader({
         <nav className="flex items-center gap-3 text-sm text-ns-muted md:gap-6">
           {variant === "public" ? (
             <>
-              <Link href="/apply" className="hidden hover:text-ns-cream sm:inline">
-                Apply
-              </Link>
-              <Link href="/login" className="hover:text-ns-cream">
+              <Link href="/login" className="hidden min-h-11 items-center hover:text-ns-cream sm:inline-flex">
                 Sign in
               </Link>
-              <Link
-                href="/apply"
-                className="rounded-full border border-ns-gold/60 px-4 py-1.5 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
-              >
-                Apply
-              </Link>
+              {!hideApplyCta && (
+                <Link
+                  href="/apply"
+                  className="inline-flex min-h-11 items-center rounded-full border border-ns-gold/60 px-4 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
+                >
+                  Apply for consideration
+                </Link>
+              )}
             </>
           ) : (
             <>
               <Link
-                href="/discover"
+                href="/member/dashboard"
                 className={
-                  pathname.startsWith("/discover")
+                  pathname.startsWith("/member/dashboard")
+                    ? "text-ns-gold"
+                    : "hidden hover:text-ns-cream sm:inline"
+                }
+              >
+                Home
+              </Link>
+              <Link
+                href="/member/introductions"
+                className={
+                  pathname.startsWith("/member/introductions")
                     ? "text-ns-gold"
                     : "hover:text-ns-cream"
                 }
               >
-                Discover
+                Introductions
               </Link>
               <Link
-                href="/matches"
+                href="/member/profile"
                 className={
-                  pathname.startsWith("/matches")
+                  pathname.startsWith("/member/profile")
                     ? "text-ns-gold"
-                    : "hover:text-ns-cream"
+                    : "hidden hover:text-ns-cream md:inline"
                 }
               >
-                Matches
-              </Link>
-              <Link
-                href="/profile"
-                className={
-                  pathname === "/profile" ? "text-ns-gold" : "hover:text-ns-cream"
-                }
-              >
-                Profile
+                Shareable profile
               </Link>
               <Link
                 href="/account"
                 className={
                   pathname.startsWith("/account")
                     ? "text-ns-gold"
-                    : "hover:text-ns-cream"
+                    : "hidden hover:text-ns-cream md:inline"
                 }
               >
                 Account
@@ -112,7 +116,7 @@ export function SiteHeader({
               <button
                 type="button"
                 onClick={signOut}
-                className="rounded-full border border-ns-border px-3 py-1.5 text-xs uppercase tracking-widest text-ns-cream transition hover:border-ns-gold"
+                className="min-h-11 rounded-full border border-ns-border px-3 text-xs uppercase tracking-widest text-ns-cream transition hover:border-ns-gold"
               >
                 Sign out
               </button>
