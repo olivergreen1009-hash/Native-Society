@@ -123,6 +123,11 @@ export interface Profile {
   completedOnboarding: boolean;
   moderationStatus: ProfileModerationStatus;
   updatedAt: string;
+  /** @deprecated gallery-era fields — optional for legacy rows */
+  raisedInBorough?: string | null;
+  summerDestination?: string | null;
+  summerOther?: string | null;
+  favoriteNycDetail?: string | null;
 }
 
 export interface Preferences {

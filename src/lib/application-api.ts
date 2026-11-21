@@ -9,7 +9,18 @@ import {
   ageFromDateOfBirth,
   buildPoolKey,
 } from "@/lib/application-validation";
-import type { Application, ApplicationIntake, RelationshipIntention } from "@/types/domain";
+import type { Application, RelationshipIntention } from "@/types/domain";
+import type { SocietyApplicationRawData } from "@/types/society";
+
+/** @deprecated Legacy pool-test intake shape for Supabase raw_data parsing only. */
+export type ApplicationIntake = ApplicationSubmitBody & {
+  name: string;
+  email: string;
+  dateOfBirth: string;
+  ageAtSubmission: number;
+  admissionCohort: "21-50" | "outside_cohort";
+  poolKey: InquiryPoolKey;
+};
 
 const INTENTION_TO_DOMAIN: Record<string, RelationshipIntention> = {
   "Long-term partnership": "long_term",
@@ -202,6 +213,36 @@ export function applicationFromIntake(intake: ApplicationIntake): Omit<
     ),
     relationshipIntention: mapRelationshipIntention(intake.relationshipIntention),
     referralSource: formatReferral(intake.heardAbout, intake.referrerName),
-    intake,
+    rawData: legacyIntakeToRawData(intake),
+  };
+}
+
+function legacyIntakeToRawData(
+  intake: ApplicationIntake,
+): SocietyApplicationRawData {
+  return {
+    shareable: {
+      fullName: intake.name,
+      email: intake.email,
+      industryConnection: formatLocation(intake.currentArea, intake.neighborhood),
+      introductionUsefulness: intake.optionalNote ?? "Legacy application import.",
+      experiencePerspective: intake.occupation ?? "",
+      specificInterests: intake.relationshipIntention,
+    },
+    founderOnly: {
+      roleOwnershipDetail: formatSchoolHistory(
+        intake.highSchool,
+        intake.elementaryMiddle,
+        intake.college,
+      ),
+      familyIndustryTies: formatNycUpbringing(intake.nycYearsBefore18),
+      additionalContext: intake.charityBoardInvolvement ?? "",
+    },
+    consents: {
+      notDatingService: intake.consents.applicationReview,
+      termsPrivacy: intake.consents.termsPrivacy,
+      noPaymentWithApplication: intake.consents.billingAfterPool,
+    },
+    referralSource: formatReferral(intake.heardAbout, intake.referrerName),
   };
 }
