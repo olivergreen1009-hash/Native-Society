@@ -37,25 +37,28 @@ export function SiteHeader({
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-ns-border bg-ns-bg/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
+      <div className="mx-auto flex h-12 max-w-6xl items-center justify-between px-5 md:h-14 md:px-8">
         <Link
           href="/"
-          className="font-heading text-xl tracking-[0.12em] text-ns-cream md:text-2xl"
+          className="font-heading text-lg tracking-[0.1em] text-ns-cream md:text-xl"
         >
           Native Society
         </Link>
-        <nav className="flex items-center gap-3 text-sm text-ns-muted md:gap-6">
+        <nav className="flex items-center gap-2 text-sm text-ns-muted md:gap-4">
           {variant === "public" ? (
             <>
-              <Link href="/login" className="hidden min-h-11 items-center hover:text-ns-cream sm:inline-flex">
+              <Link
+                href="/login"
+                className="hidden items-center py-2 hover:text-ns-cream sm:inline-flex"
+              >
                 Sign in
               </Link>
               {!hideApplyCta && (
                 <Link
                   href="/apply"
-                  className="inline-flex min-h-11 items-center rounded-full border border-ns-gold/60 px-4 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
+                  className="inline-flex items-center rounded-full border border-ns-gold/60 px-3 py-1.5 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
                 >
-                  Apply for consideration
+                  Apply
                 </Link>
               )}
             </>
