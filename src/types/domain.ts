@@ -1,13 +1,18 @@
 /** Core domain types — structured for future Postgres + auth provider swap-in. */
 
-import type { InquirySubmission } from "@/lib/types";
+import type {
+  MemberLifecycleState,
+  SocietyApplicationRawData,
+} from "@/types/society";
 
 export type UserRole = "member" | "admin";
 
 export type ApplicationStatus =
-  | "pending"
+  | "applied"
+  | "under_review"
   | "more_info_needed"
-  | "approved"
+  | "qualified_waiting"
+  | "invited_to_activate"
   | "declined";
 
 export type RelationshipIntention =
@@ -44,7 +49,9 @@ export interface User extends UserBillingFields {
   approvedAt: string | null;
   active: boolean;
   applicationId: string | null;
-  /** Member-controlled: hidden from new batches (viewer + candidate). */
+  /** Society introduction lifecycle (see product brief). */
+  memberLifecycleState?: MemberLifecycleState;
+  /** Member-controlled: pause new introduction proposals. */
   pauseDiscovery: boolean;
   accountStatus: AccountStatus;
   pendingDeletionRequestedAt: string | null;
@@ -69,26 +76,23 @@ export type ProfileModerationStatus =
 
 export type ReportStatus = "open" | "dismissed" | "escalated";
 
-/** Full structured application payload (see commit 28d1000 application-form). */
-export type ApplicationIntake = Omit<InquirySubmission, "id" | "createdAt">;
-
 export interface Application {
   id: string;
   userId: string | null;
   fullName: string;
   email: string;
-  dateOfBirth: string;
-  location: string;
-  nycUpbringing: string;
-  schoolHistory: string;
-  relationshipIntention: RelationshipIntention;
-  referralSource: string;
-  /** Present on applications submitted via the structured apply form. */
-  intake?: ApplicationIntake;
   status: ApplicationStatus;
   adminNotes: string;
   submittedAt: string;
   updatedAt: string;
+  rawData: SocietyApplicationRawData;
+  /** @deprecated legacy dating-era intake — optional for seeded demos */
+  dateOfBirth?: string;
+  location?: string;
+  nycUpbringing?: string;
+  schoolHistory?: string;
+  relationshipIntention?: RelationshipIntention;
+  referralSource?: string;
 }
 
 export interface ProfilePhoto {
@@ -114,10 +118,6 @@ export interface Profile {
   prompts: ProfilePrompt[];
   interests: string[];
   schoolLine: string | null;
-  summerDestination?: string | null;
-  summerOther?: string | null;
-  raisedInBorough?: string | null;
-  favoriteNycDetail?: string | null;
   neighborhood: string;
   discoverable: boolean;
   completedOnboarding: boolean;

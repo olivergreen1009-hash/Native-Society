@@ -5,6 +5,34 @@ import type {
   Profile,
   User,
 } from "@/types/domain";
+import type { IntroductionProposal, SocietyApplicationRawData } from "@/types/society";
+
+function societyRaw(
+  shareable: Partial<SocietyApplicationRawData["shareable"]> &
+    Pick<SocietyApplicationRawData["shareable"], "fullName" | "email">,
+  founderOnly?: Partial<SocietyApplicationRawData["founderOnly"]>,
+): SocietyApplicationRawData {
+  return {
+    shareable: {
+      industryConnection: "Hospitality and asset management in Manhattan.",
+      introductionUsefulness: "Peers operating boutique hotels and mixed-use assets.",
+      experiencePerspective: "Twenty years in acquisitions and asset repositioning.",
+      specificInterests: "Operating partners, development collaborators.",
+      ...shareable,
+    },
+    founderOnly: {
+      roleOwnershipDetail: "Principal of a family office with direct RE operating exposure.",
+      familyIndustryTies: "",
+      additionalContext: founderOnly?.additionalContext ?? "",
+      ...founderOnly,
+    },
+    consents: {
+      notDatingService: true,
+      termsPrivacy: true,
+      noPaymentWithApplication: true,
+    },
+  };
+}
 
 const now = () => new Date().toISOString();
 
@@ -302,16 +330,22 @@ const demoMemberApplication: Application = {
   userId: DEMO_MEMBER_ID,
   fullName: "Olivia Mercer",
   email: "member@nativesociety.nyc",
-  dateOfBirth: "1993-04-12",
-  location: "Manhattan",
-  nycUpbringing: "Born and raised on the Upper East Side",
-  schoolHistory: "Brearley → Wesleyan",
-  relationshipIntention: "long_term",
-  referralSource: "Member referral — Henry K.",
-  status: "approved",
+  status: "invited_to_activate",
   adminNotes: "",
   submittedAt: now(),
   updatedAt: now(),
+  rawData: societyRaw(
+    {
+      fullName: "Olivia Mercer",
+      email: "member@nativesociety.nyc",
+      industryConnection: "Luxury hospitality development and brand partnerships.",
+      introductionUsefulness: "Operators scaling boutique properties in NYC.",
+    },
+    {
+      roleOwnershipDetail: "Co-founder, boutique hospitality group (NYC).",
+    },
+  ),
+  referralSource: "Founder referral",
 };
 
 export function ensureSeeded(): void {
@@ -330,6 +364,7 @@ export function ensureSeeded(): void {
     approvedAt: now(),
     active: true,
     applicationId: demoMemberApplication.id,
+    memberLifecycleState: "active",
     stripeCustomerId: null,
     subscriptionStatus: "none",
     planId: null,
@@ -429,16 +464,16 @@ export function ensureSeeded(): void {
     userId: null,
     fullName: "Noah Klein",
     email: "noah.klein@example.com",
-    dateOfBirth: "1994-08-02",
-    location: "Brooklyn",
-    nycUpbringing: "Park Slope; summers in Southampton",
-    schoolHistory: "Poly Prep → Bowdoin",
-    relationshipIntention: "long_term",
-    referralSource: "Member referral",
-    status: "pending",
+    status: "applied",
     adminNotes: "",
     submittedAt: now(),
     updatedAt: now(),
+    rawData: societyRaw({
+      fullName: "Noah Klein",
+      email: "noah.klein@example.com",
+      industryConnection: "Brooklyn mixed-use development and ground-floor hospitality.",
+    }),
+    referralSource: "Member referral",
   };
   fresh.applications.set(pendingApplication.id, pendingApplication);
 
@@ -447,18 +482,38 @@ export function ensureSeeded(): void {
     userId: null,
     fullName: "Sarah Whitfield",
     email: "sarah.whitfield@example.com",
-    dateOfBirth: "1991-01-19",
-    location: "Manhattan",
-    nycUpbringing: "UES",
-    schoolHistory: "Nightingale",
-    relationshipIntention: "marriage_minded",
-    referralSource: "Website",
     status: "more_info_needed",
-    adminNotes: "Please confirm boarding school attendance.",
+    adminNotes: "Please clarify operating role in hospitality portfolio.",
     submittedAt: now(),
     updatedAt: now(),
+    rawData: societyRaw({
+      fullName: "Sarah Whitfield",
+      email: "sarah.whitfield@example.com",
+      industryConnection: "Family office with significant NYC hospitality assets.",
+    }),
+    referralSource: "Website",
   };
   fresh.applications.set(moreInfoApplication.id, moreInfoApplication);
+
+  const demoProposal: IntroductionProposal = {
+    id: "intro-demo-1",
+    recipientMemberId: DEMO_MEMBER_ID,
+    counterpartMemberId: "user-james",
+    state: "awaiting_responses",
+    proposalText:
+      "James leads acquisitions for a boutique hotel group expanding in lower Manhattan. You are repositioning a SoHo property—there may be a practical alignment on operators and design partners.",
+    reason: "Shared focus on boutique hospitality repositioning in Manhattan.",
+    limitedProfileSnapshot: {
+      displayName: "James R.",
+      headline: "Hospitality acquisitions · Tribeca",
+      industryContext: "Independent day / boarding roots · Georgetown",
+    },
+    recipientResponse: "pending",
+    counterpartResponse: "pending",
+    createdAt: now(),
+    updatedAt: now(),
+  };
+  fresh.introductionProposals.push(demoProposal);
 
   const flaggedProfile = fresh.profiles.get("profile-michael");
   if (flaggedProfile) {

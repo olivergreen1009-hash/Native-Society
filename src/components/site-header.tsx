@@ -55,7 +55,7 @@ export function SiteHeader({
                   href="/apply"
                   className="inline-flex min-h-11 items-center rounded-full border border-ns-gold/60 px-4 text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
                 >
-                  Apply
+                  Apply for consideration
                 </Link>
               )}
             </>
@@ -72,34 +72,34 @@ export function SiteHeader({
                 Home
               </Link>
               <Link
-                href="/member/gallery"
+                href="/member/introductions"
                 className={
-                  pathname.startsWith("/member/gallery")
+                  pathname.startsWith("/member/introductions")
                     ? "text-ns-gold"
-                    : "hidden hover:text-ns-cream sm:inline"
+                    : "hover:text-ns-cream"
                 }
               >
-                This week
+                Introductions
               </Link>
               <Link
                 href="/member/profile"
                 className={
                   pathname.startsWith("/member/profile")
                     ? "text-ns-gold"
-                    : "hover:text-ns-cream"
+                    : "hidden hover:text-ns-cream md:inline"
                 }
               >
-                Profile
+                Shareable profile
               </Link>
               <Link
-                href="/discover"
+                href="/account"
                 className={
-                  pathname.startsWith("/discover")
+                  pathname.startsWith("/account")
                     ? "text-ns-gold"
                     : "hidden hover:text-ns-cream md:inline"
                 }
               >
-                Discover
+                Account
               </Link>
               {session?.role === "admin" && (
                 <Link

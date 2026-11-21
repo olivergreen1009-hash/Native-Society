@@ -4,9 +4,14 @@ export default function TermsPage() {
   return (
     <LegalDocument title="Terms of use">
       <p>
-        Membership is invitation-only and subject to human review. These placeholder
-        terms will set forth eligibility, conduct expectations, and limitations of
-        liability.
+        Membership is paid, by invitation, and subject to founder review. Native Society
+        is a professional and social introduction service—not a dating or romantic
+        matchmaking service.
+      </p>
+      <p className="mt-4">
+        {/* TODO(counsel): Replace with counsel-approved membership fees, activation terms, refund policy, and liability limitations before collecting fees. */}
+        Placeholder terms: fee schedule, service scope, pause/close rules, and limitations
+        of liability will be provided before activation.
       </p>
     </LegalDocument>
   );

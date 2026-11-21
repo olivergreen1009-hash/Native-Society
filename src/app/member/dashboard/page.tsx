@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SESSION_COOKIE, decodeSession } from "@/lib/auth";
-import { getFoundingQuestionnaire } from "@/lib/client-store";
-import { currentWeekLabel } from "@/lib/member-gallery-profiles";
-import { WEEKLY_SELECTION_NOTE } from "@/lib/member-club-copy";
+import { DEMO_MEMBER } from "@/lib/sample-data";
+import {
+  MEMBER_LIFECYCLE_LABELS,
+  type MemberLifecycleState,
+} from "@/types/society";
 
 export default function MemberDashboardPage() {
-  const [name, setName] = useState("Member");
-  const [questionnaireDone, setQuestionnaireDone] = useState(false);
+  const [lifecycle, setLifecycle] = useState<MemberLifecycleState>("active");
+  const [pendingProposals, setPendingProposals] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     const match = document.cookie
@@ -18,86 +21,68 @@ export default function MemberDashboardPage() {
     const session = match
       ? decodeSession(decodeURIComponent(match.split("=")[1] ?? ""))
       : null;
-    if (session?.name) setName(session.name.split(" ")[0] ?? session.name);
-    const memberId = session?.userId ?? "user-olivia";
-    const q = getFoundingQuestionnaire(memberId);
-    setQuestionnaireDone(Boolean(q.submittedAt));
+    const memberId = session?.userId ?? DEMO_MEMBER.id;
+
+    void (async () => {
+      const res = await fetch("/api/member/proposals");
+      if (!res.ok) return;
+      const json = (await res.json()) as {
+        lifecycle?: MemberLifecycleState;
+        pauseDiscovery?: boolean;
+        proposals?: { state: string }[];
+      };
+      if (json.lifecycle) setLifecycle(json.lifecycle);
+      setPaused(Boolean(json.pauseDiscovery));
+      const pending =
+        json.proposals?.filter((p) => p.state === "awaiting_responses").length ??
+        0;
+      setPendingProposals(pending);
+    })();
   }, []);
 
   return (
-    <div>
-      <p className="text-xs uppercase tracking-[0.35em] text-ns-gold">Member</p>
-      <h1 className="font-heading mt-3 text-4xl text-ns-cream md:text-5xl">
-        You&apos;re in, {name}.
-      </h1>
-      <p className="mt-4 max-w-2xl text-base leading-relaxed text-ns-muted">
-        Your membership is active. Review this week&apos;s introductions, keep your
-        profile current, and express interest only when the fit feels right—no public
-        browsing, no unsolicited messages.
-      </p>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ns-muted">
-        {WEEKLY_SELECTION_NOTE}
+    <div className="mx-auto max-w-6xl px-5 md:px-8">
+      <p className="text-xs uppercase tracking-[0.3em] text-ns-gold">Member</p>
+      <h1 className="font-heading mt-3 text-4xl text-ns-cream">Your status</h1>
+      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ns-muted">
+        {paused
+          ? "You are paused. New proposals are on hold; pending proposals follow the rules explained when you paused."
+          : "Native Society proposes introductions when there is a clear reason to meet. You decide on each proposal; contact is shared only after mutual acceptance."}
       </p>
 
-      <div className="mt-10 rounded border border-ns-gold/40 bg-ns-surface p-6 md:p-8">
-        <p className="text-xs uppercase tracking-widest text-ns-gold">Next steps</p>
-        <ol className="mt-4 space-y-4 text-sm text-ns-cream">
-          <Step
-            done={false}
-            title="Review this week's batch"
-            body={`Small batch · week of ${currentWeekLabel()}`}
-            href="/member/gallery"
-            cta="Open gallery"
-          />
-          <Step
-            done={false}
-            title="Finish your member profile"
-            body="Photo, bio, and match preferences stay private until mutual interest."
-            href="/member/profile"
-            cta="Edit profile"
-          />
-          <Step
-            done={questionnaireDone}
-            title="Complete compatibility questions"
-            body="Optional depth for sharper matching—five minutes."
-            href="/member/questionnaire"
-            cta={questionnaireDone ? "View answers" : "Start questionnaire"}
-          />
-        </ol>
+      <div className="mt-10 grid gap-6 sm:grid-cols-2">
+        <div className="rounded border border-ns-border bg-ns-surface p-6">
+          <p className="text-xs uppercase tracking-widest text-ns-muted">Membership</p>
+          <p className="font-heading mt-2 text-2xl text-ns-gold">
+            {MEMBER_LIFECYCLE_LABELS[lifecycle]}
+          </p>
+        </div>
+        <div className="rounded border border-ns-border bg-ns-surface p-6">
+          <p className="text-xs uppercase tracking-widest text-ns-muted">
+            Proposals awaiting you
+          </p>
+          <p className="font-heading mt-2 text-2xl text-ns-gold">{pendingProposals}</p>
+        </div>
       </div>
 
+      <div className="mt-12 rounded border border-ns-border bg-ns-bg/40 p-6">
+        <h2 className="font-heading text-xl text-ns-cream">Operating rules</h2>
+        <ul className="mt-4 space-y-2 text-sm text-ns-muted">
+          <li>— Each proposal includes a limited profile and a specific reason to meet.</li>
+          <li>— If you decline, the introduction closes with no contact shared.</li>
+          <li>— After mutual acceptance, the founder sends a joint introduction.</li>
+          <li>— Native Society does not promise access to capital or funding outcomes.</li>
+        </ul>
+      </div>
+
+      <div className="mt-8">
+        <Link
+          href="/member/introductions"
+          className="inline-flex rounded-full border border-ns-gold px-6 py-3 text-xs uppercase tracking-widest text-ns-gold hover:bg-ns-gold hover:text-ns-bg"
+        >
+          View proposed introductions →
+        </Link>
+      </div>
     </div>
-  );
-}
-
-function Step({
-  done,
-  title,
-  body,
-  href,
-  cta,
-}: {
-  done: boolean;
-  title: string;
-  body: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <li className="flex flex-col gap-3 border-t border-ns-border pt-4 first:border-t-0 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p className="font-heading text-ns-cream">
-          {done ? "✓ " : ""}
-          {title}
-        </p>
-        <p className="mt-1 text-ns-muted">{body}</p>
-      </div>
-      <Link
-        href={href}
-        className="shrink-0 rounded-full border border-ns-gold px-4 py-2 text-center text-xs uppercase tracking-widest text-ns-gold transition hover:bg-ns-gold hover:text-ns-bg"
-      >
-        {cta}
-      </Link>
-    </li>
   );
 }

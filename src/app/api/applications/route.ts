@@ -1,64 +1,54 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import {
-  validateApplicationBody,
-  type ApplicationSubmitBody,
-} from "@/lib/application-api";
+import { repositories } from "@/repositories/memory";
+import type { SocietyApplicationRawData } from "@/types/society";
+
+function validateRawData(
+  raw: SocietyApplicationRawData,
+): { ok: true } | { ok: false; error: string } {
+  const s = raw.shareable;
+  const f = raw.founderOnly;
+  if (
+    !s.fullName?.trim() ||
+    !s.email?.trim() ||
+    !s.industryConnection?.trim() ||
+    !s.introductionUsefulness?.trim() ||
+    !s.experiencePerspective?.trim() ||
+    !s.specificInterests?.trim()
+  ) {
+    return { ok: false, error: "Please complete all shareable fields." };
+  }
+  if (!f.roleOwnershipDetail?.trim()) {
+    return { ok: false, error: "Please complete founder-only review fields." };
+  }
+  const c = raw.consents;
+  if (!c.notDatingService || !c.termsPrivacy || !c.noPaymentWithApplication) {
+    return { ok: false, error: "Please accept all required confirmations." };
+  }
+  return { ok: true };
+}
 
 export async function POST(request: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    console.error(
-      "[applications] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    );
-    return NextResponse.json(
-      {
-        error:
-          "Application storage is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
-      },
-      { status: 500 },
-    );
+  const body = (await request.json()) as { rawData: SocietyApplicationRawData };
+  const validation = validateRawData(body.rawData);
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  let body: ApplicationSubmitBody;
-  try {
-    body = (await request.json()) as ApplicationSubmitBody;
-  } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  const rawData = body.rawData;
+  const email = rawData.shareable.email.trim().toLowerCase();
+
+  const existing = await repositories.applications.findByEmail(email);
+  if (existing) {
+    return NextResponse.json({ applicationId: existing.id, status: existing.status });
   }
 
-  const validated = validateApplicationBody(body);
-  if (!validated.ok) {
-    return NextResponse.json({ error: validated.error }, { status: 400 });
-  }
-
-  const { intake } = validated;
-  const supabase = createClient(url, anonKey);
-  const { error } = await supabase.from("applications").insert({
-    full_name: intake.name,
-    email: intake.email,
-    date_of_birth: intake.dateOfBirth,
-    raw_data: body,
+  const app = await repositories.applications.create({
+    userId: null,
+    fullName: rawData.shareable.fullName.trim(),
+    email,
+    rawData,
+    referralSource: rawData.referralSource,
   });
 
-  if (error) {
-    console.error("[applications] Supabase insert failed:", {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
-    });
-    const details = [error.code, error.details, error.hint].filter(Boolean).join(" · ");
-    return NextResponse.json(
-      {
-        error: error.message,
-        details,
-      },
-      { status: 502 },
-    );
-  }
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ applicationId: app.id, status: app.status });
 }

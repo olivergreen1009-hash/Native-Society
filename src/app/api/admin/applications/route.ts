@@ -43,27 +43,29 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (body.status === "approved") {
+  if (body.status === "invited_to_activate") {
     const existingUser = await repositories.users.findByEmail(updated.email);
     if (existingUser) {
       await repositories.users.update(existingUser.id, {
         approvedAt: new Date().toISOString(),
+        memberLifecycleState: "invited_to_activate",
       });
       const profile = await repositories.profiles.findByUserId(existingUser.id);
       const supabase = getSupabaseServerClient();
       if (supabase) {
+        const shareable = updated.rawData?.shareable;
         await upsertMemberProfileFromApproval(supabase, {
           userId: existingUser.id,
           firstName: updated.fullName.split(" ")[0] ?? updated.fullName,
-          neighborhood: updated.location,
-          schoolLine: updated.schoolHistory,
-          bio: profile?.bio ?? "",
+          neighborhood: shareable?.industryConnection?.slice(0, 80) ?? "",
+          schoolLine: "",
+          bio: shareable?.experiencePerspective ?? profile?.bio ?? "",
           photoUrl: profile?.photos[0]?.url,
         });
         if (profile) {
           await repositories.profiles.upsert({
             ...profile,
-            discoverable: true,
+            discoverable: false,
             moderationStatus: "approved",
           });
         }
