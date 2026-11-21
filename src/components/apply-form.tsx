@@ -1,16 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, type ReactNode } from "react";
 import { FormField, inputClassName } from "@/components/ui/form-field";
-import type { RelationshipIntention } from "@/types/domain";
-
-const intentions: { value: RelationshipIntention; label: string }[] = [
-  { value: "long_term", label: "Long-term partnership" },
-  { value: "marriage_minded", label: "Marriage-minded" },
-  { value: "open_to_explore", label: "Open to explore" },
-  { value: "not_sure", label: "Still clarifying" },
-];
+import type { SocietyApplicationRawData } from "@/types/society";
 
 export function ApplyForm() {
   const router = useRouter();
@@ -22,23 +16,41 @@ export function ApplyForm() {
     setError("");
     setLoading(true);
     const data = new FormData(e.currentTarget);
-    const payload = {
-      fullName: String(data.get("fullName") ?? ""),
-      email: String(data.get("email") ?? ""),
-      dateOfBirth: String(data.get("dateOfBirth") ?? ""),
-      location: String(data.get("location") ?? ""),
-      nycUpbringing: String(data.get("nycUpbringing") ?? ""),
-      schoolHistory: String(data.get("schoolHistory") ?? ""),
-      relationshipIntention: String(
-        data.get("relationshipIntention") ?? "long_term",
-      ) as RelationshipIntention,
-      referralSource: String(data.get("referralSource") ?? ""),
+
+    const consents = {
+      notDatingService: data.get("consentNotDating") === "on",
+      termsPrivacy: data.get("consentTerms") === "on",
+      noPaymentWithApplication: data.get("consentNoPayment") === "on",
+    };
+
+    if (!consents.notDatingService || !consents.termsPrivacy || !consents.noPaymentWithApplication) {
+      setError("Please accept all required confirmations.");
+      setLoading(false);
+      return;
+    }
+
+    const rawData: SocietyApplicationRawData = {
+      shareable: {
+        fullName: String(data.get("fullName") ?? "").trim(),
+        email: String(data.get("email") ?? "").trim(),
+        industryConnection: String(data.get("industryConnection") ?? "").trim(),
+        introductionUsefulness: String(data.get("introductionUsefulness") ?? "").trim(),
+        experiencePerspective: String(data.get("experiencePerspective") ?? "").trim(),
+        specificInterests: String(data.get("specificInterests") ?? "").trim(),
+      },
+      founderOnly: {
+        roleOwnershipDetail: String(data.get("roleOwnershipDetail") ?? "").trim(),
+        familyIndustryTies: String(data.get("familyIndustryTies") ?? "").trim(),
+        additionalContext: String(data.get("additionalContext") ?? "").trim(),
+      },
+      consents,
+      referralSource: String(data.get("referralSource") ?? "").trim() || undefined,
     };
 
     const res = await fetch("/api/applications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ rawData }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -51,55 +63,142 @@ export function ApplyForm() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="mt-10 space-y-5">
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      <FormField label="Full name" name="fullName" required />
-      <FormField label="Email" name="email" type="email" required />
-      <FormField
-        label="Date of birth"
-        name="dateOfBirth"
-        type="date"
-        required
-      />
-      <FormField label="Current location" name="location" required />
-      <FormField
-        label="NYC upbringing"
-        name="nycUpbringing"
-        placeholder="Neighborhoods, years in the city, family roots…"
-        required
-      />
-      <FormField
-        label="School history"
-        name="schoolHistory"
-        placeholder="e.g. Chapin → Andover"
-        required
-      />
-      <FormField label="Relationship intention">
-        <select
-          name="relationshipIntention"
-          className={inputClassName}
-          defaultValue="long_term"
-        >
-          {intentions.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-ns-surface">
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </FormField>
-      <FormField
-        label="Referral source"
-        name="referralSource"
-        placeholder="Member name, event, or how you heard of us"
-        required
-      />
+    <form onSubmit={onSubmit} className="mt-10 space-y-8">
+      {error && (
+        <p className="text-sm text-red-400" role="alert">
+          {error}
+        </p>
+      )}
+
+      <fieldset className="space-y-5 border-none p-0">
+        <legend className="font-heading text-lg text-ns-cream">
+          Shareable with introductions (when you approve)
+        </legend>
+        <p className="text-sm text-ns-muted">
+          These answers may appear in a limited profile shared only after you approve
+          participation in a specific introduction.
+        </p>
+        <FormField label="Full name" name="fullName" required />
+        <FormField label="Email" name="email" type="email" required />
+        <FormField
+          label="Your connection to New York real estate or hospitality"
+          name="industryConnection"
+          as="textarea"
+          rows={4}
+          required
+          placeholder="Role, ownership, operating focus, or how your work ties to the industry…"
+        />
+        <FormField
+          label="What would make an introduction genuinely useful to you right now?"
+          name="introductionUsefulness"
+          as="textarea"
+          rows={3}
+          required
+        />
+        <FormField
+          label="Experience and perspective you bring"
+          name="experiencePerspective"
+          as="textarea"
+          rows={3}
+          required
+        />
+        <FormField
+          label="Specific interests (collaborations, peers, operating partners, etc.)"
+          name="specificInterests"
+          as="textarea"
+          rows={3}
+          required
+        />
+      </fieldset>
+
+      <fieldset className="space-y-5 border-t border-ns-border pt-8">
+        <legend className="font-heading text-lg text-ns-gold">Founder review only</legend>
+        <p className="text-sm text-ns-muted">
+          Not shown to other members. Used to assess fit and whether we can meaningfully
+          serve your goals.
+        </p>
+        <FormField
+          label="Role, ownership, or operating detail"
+          name="roleOwnershipDetail"
+          as="textarea"
+          rows={3}
+          required
+        />
+        <FormField
+          label="Family or household ties to the industry (if applicable)"
+          name="familyIndustryTies"
+          as="textarea"
+          rows={2}
+          placeholder="Optional — immediate family and your own activities"
+        />
+        <FormField
+          label="Additional context for review"
+          name="additionalContext"
+          as="textarea"
+          rows={2}
+        />
+        <FormField
+          label="How you heard about Native Society"
+          name="referralSource"
+          placeholder="Optional"
+        />
+      </fieldset>
+
+      <fieldset className="space-y-4 border-t border-ns-border pt-8">
+        <legend className="font-heading text-lg text-ns-cream">Required confirmations</legend>
+        <ConsentCheckbox
+          name="consentNotDating"
+          label="I understand Native Society is for professional and social connections only—not a dating or romantic matchmaking service."
+        />
+        <ConsentCheckbox
+          name="consentTerms"
+          label={
+            <>
+              I agree to the{" "}
+              <Link href="/terms" className="text-ns-gold underline">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="text-ns-gold underline">
+                Privacy Policy
+              </Link>
+              .
+            </>
+          }
+        />
+        <ConsentCheckbox
+          name="consentNoPayment"
+          label="I understand no payment is collected with this application. Fees and service terms are provided before I decide whether to activate membership."
+        />
+      </fieldset>
+
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-full bg-ns-gold py-3 text-sm font-medium uppercase tracking-widest text-ns-bg hover:bg-ns-cream disabled:opacity-60"
+        className="w-full rounded-full bg-ns-gold py-3 text-sm uppercase tracking-widest text-ns-bg disabled:opacity-50 sm:w-auto sm:px-12"
       >
         {loading ? "Submitting…" : "Submit application"}
       </button>
     </form>
+  );
+}
+
+function ConsentCheckbox({
+  name,
+  label,
+}: {
+  name: string;
+  label: ReactNode;
+}) {
+  return (
+    <label className="flex cursor-pointer gap-3 text-sm leading-relaxed text-ns-cream">
+      <input
+        type="checkbox"
+        name={name}
+        required
+        className="mt-1 shrink-0 accent-ns-gold"
+      />
+      <span>{label}</span>
+    </label>
   );
 }
