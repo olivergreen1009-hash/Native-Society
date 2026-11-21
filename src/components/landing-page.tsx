@@ -15,6 +15,32 @@ const howItWorks = [
   },
 ] as const;
 
+const networkSnapshot = [
+  { label: "Asset focus", value: "Multifamily · Boutique hospitality · Mixed-use" },
+  { label: "Geography", value: "Manhattan · Brooklyn · Hamptons / Long Island" },
+  {
+    label: "Deal types",
+    value: "Acquisitions · Joint ventures · Operator search · Capital introductions",
+  },
+  { label: "Typical scale", value: "$15M–$80M" },
+  { label: "Active principals", value: "40+" },
+] as const;
+
+const exampleIntroductions = [
+  {
+    title: "Tribeca mixed-use — operator search",
+    description:
+      "Family office principal repositioning a 42-key boutique hotel with ground-floor retail in Tribeca. Seeking an experienced independent operator with luxury F&B experience.",
+    reason: "Why this connection — shared boutique-hospitality focus · similar deal scale",
+  },
+  {
+    title: "Brooklyn multifamily — co-investor",
+    description:
+      "Developer with a 68-unit rental conversion in north Brooklyn, shovel-ready. Open to a capital partner comfortable with value-add multifamily in emerging corridors.",
+    reason: "Why this connection — aligned asset class · complementary equity role",
+  },
+] as const;
+
 export function LandingPage() {
   return (
     <div className="pt-14">
@@ -42,6 +68,66 @@ export function LandingPage() {
         <p className="mt-4 text-sm leading-snug text-ns-muted">
           Private profiles. Mutual agreement. No open directory.
         </p>
+      </section>
+
+      {/* Current network snapshot */}
+      <section className="border-t border-ns-border bg-ns-surface/30 py-10 md:py-12">
+        <div className="mx-auto max-w-6xl px-5 md:px-8">
+          <h2 className="font-heading text-2xl text-ns-cream md:text-3xl">
+            Current network snapshot
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-ns-muted md:text-base">
+            Illustrative of the principals and opportunities we&apos;re connecting.
+          </p>
+          <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {networkSnapshot.map((row) => (
+              <div
+                key={row.label}
+                className="rounded border border-ns-border bg-ns-bg/50 px-4 py-3.5"
+              >
+                <dt className="text-[10px] font-medium uppercase tracking-[0.2em] text-ns-gold">
+                  {row.label}
+                </dt>
+                <dd className="mt-2 text-sm leading-snug text-ns-cream">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-6 text-[11px] text-ns-muted">
+            Figures are representative and updated periodically.
+          </p>
+        </div>
+      </section>
+
+      {/* Example introductions */}
+      <section className="border-t border-ns-border py-10 md:py-12">
+        <div className="mx-auto max-w-6xl px-5 md:px-8">
+          <h2 className="font-heading text-2xl text-ns-cream md:text-3xl">
+            Example introductions
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-ns-muted md:text-base">
+            Illustrative only — not real members or live deals.
+          </p>
+          <ul className="mt-8 grid list-none gap-4 md:grid-cols-2">
+            {exampleIntroductions.map((card) => (
+              <li key={card.title} className="h-full">
+                <article className="relative flex h-full flex-col rounded border border-ns-gold/35 bg-ns-surface p-5 md:p-6">
+                  <span className="absolute right-3 top-3 rounded border border-ns-gold/80 bg-ns-bg/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-ns-gold">
+                    Example
+                  </span>
+                  <h3 className="font-heading pr-20 text-lg text-ns-cream md:text-xl">
+                    {card.title}
+                  </h3>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-ns-muted">
+                    {card.description}
+                  </p>
+                  <p className="mt-4 border-t border-ns-border/80 pt-4 text-xs leading-relaxed text-ns-gold">
+                    {card.reason}
+                  </p>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* How it works */}
