@@ -13,6 +13,7 @@ import type {
   Report,
   User,
 } from "@/types/domain";
+import type { IntroductionProposal } from "@/types/society";
 
 export interface MemoryDatabase {
   users: Map<string, User>;
@@ -29,6 +30,7 @@ export interface MemoryDatabase {
   adminActions: AdminAction[];
   magicLinks: MagicLinkToken[];
   usersByEmail: Map<string, string>;
+  introductionProposals: IntroductionProposal[];
 }
 
 declare global {
@@ -52,6 +54,7 @@ function createEmptyDb(): MemoryDatabase {
     adminActions: [],
     magicLinks: [],
     usersByEmail: new Map(),
+    introductionProposals: [],
   };
 }
 

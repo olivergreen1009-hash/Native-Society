@@ -96,7 +96,7 @@ export const memoryApplications: ApplicationRepository = {
     const created: Application = {
       ...app,
       id: id("app"),
-      status: "pending",
+      status: "applied",
       adminNotes: "",
       submittedAt: now(),
       updatedAt: now(),

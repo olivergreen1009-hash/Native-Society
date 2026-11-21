@@ -1,11 +1,18 @@
 /** Core domain types — structured for future Postgres + auth provider swap-in. */
 
+import type {
+  MemberLifecycleState,
+  SocietyApplicationRawData,
+} from "@/types/society";
+
 export type UserRole = "member" | "admin";
 
 export type ApplicationStatus =
-  | "pending"
+  | "applied"
+  | "under_review"
   | "more_info_needed"
-  | "approved"
+  | "qualified_waiting"
+  | "invited_to_activate"
   | "declined";
 
 export type RelationshipIntention =
@@ -42,7 +49,9 @@ export interface User extends UserBillingFields {
   approvedAt: string | null;
   active: boolean;
   applicationId: string | null;
-  /** Member-controlled: hidden from new batches (viewer + candidate). */
+  /** Society introduction lifecycle (see product brief). */
+  memberLifecycleState?: MemberLifecycleState;
+  /** Member-controlled: pause new introduction proposals. */
   pauseDiscovery: boolean;
   accountStatus: AccountStatus;
   pendingDeletionRequestedAt: string | null;
@@ -72,16 +81,18 @@ export interface Application {
   userId: string | null;
   fullName: string;
   email: string;
-  dateOfBirth: string;
-  location: string;
-  nycUpbringing: string;
-  schoolHistory: string;
-  relationshipIntention: RelationshipIntention;
-  referralSource: string;
   status: ApplicationStatus;
   adminNotes: string;
   submittedAt: string;
   updatedAt: string;
+  rawData: SocietyApplicationRawData;
+  /** @deprecated legacy dating-era intake — optional for seeded demos */
+  dateOfBirth?: string;
+  location?: string;
+  nycUpbringing?: string;
+  schoolHistory?: string;
+  relationshipIntention?: RelationshipIntention;
+  referralSource?: string;
 }
 
 export interface ProfilePhoto {
