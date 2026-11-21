@@ -84,32 +84,33 @@ export function LandingPage() {
         <div className="mx-auto max-w-3xl px-5 md:px-8">
           <h2 className="font-heading text-2xl text-ns-cream md:text-3xl">Membership</h2>
           <p className="mt-4 text-sm leading-relaxed text-ns-muted md:text-base">
-            Paid membership, by invitation following review. Fees and terms are shared
-            before you join.
+            Paid membership, by invitation following review. Full terms are shared before
+            you join.
           </p>
-          <p className="mt-3 text-sm leading-relaxed text-ns-muted md:text-base">
-            No application fee. No payment until we confirm we can meaningfully serve your
-            goals.
-          </p>
-          {/* TODO(counsel): Publish counsel-approved membership fee schedule and activation terms on this page when ready. */}
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="border-t border-ns-border py-10 md:py-12">
-        <div className="mx-auto max-w-3xl px-5 md:px-8">
-          <h2 className="font-heading text-2xl text-ns-cream md:text-3xl">FAQ</h2>
-          <dl className="mt-6 space-y-6">
-            <div>
-              <dt className="font-heading text-base text-ns-cream">
-                Is this a dating service?
-              </dt>
-              <dd className="mt-2 text-sm leading-relaxed text-ns-muted">
-                No. Native Society is for professional and social connections within New
-                York real estate and hospitality.
+          <dl className="mt-6 rounded border border-ns-gold/30 bg-ns-bg/60 p-5 md:p-6">
+            <div className="flex items-baseline justify-between gap-4 border-b border-ns-border/80 pb-3">
+              <dt className="text-sm text-ns-muted">Initiation</dt>
+              <dd className="font-heading text-xl text-ns-gold tabular-nums md:text-2xl">
+                $10,000
+              </dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-4 border-b border-ns-border/80 py-3">
+              <dt className="text-sm text-ns-muted">Annual dues</dt>
+              <dd className="font-heading text-xl text-ns-gold tabular-nums md:text-2xl">
+                $5,000
+              </dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-4 pt-3">
+              <dt className="font-heading text-sm text-ns-cream">First-year total</dt>
+              <dd className="font-heading text-2xl text-ns-cream tabular-nums md:text-3xl">
+                $15,000
               </dd>
             </div>
           </dl>
+          <p className="mt-4 text-sm leading-relaxed text-ns-muted md:text-base">
+            No application fee. No payment until we confirm we can meaningfully serve your
+            goals.
+          </p>
         </div>
       </section>
 
